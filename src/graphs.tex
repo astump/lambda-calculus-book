@@ -1,0 +1,64 @@
+\chapter{Graph Representations of Lambda Terms}
+
+As we have seen so far, scoping, capture avoidance, and syntactic
+substitution have been central technical matters to resolve in
+defining lambda calculus.  In this chapter, we explore an alternative
+which avoids almost all of that complexity, namely graph
+representations of lambda terms.  Instead of representing a term as a
+tree, we may represent it as a more general kind of graph.  Instead of
+having a name, a binding occurrence of a variable will be represented
+by an edge in the graph from the $\lambda$ node to the place the
+variable is used.  In order to accommodate terms with multiple bound
+occurrences for a particular $\lambda$ node, we must introduce
+duplicator nodes that explicitly fork such an edge.  We will make
+use of the traditional syntax using bound variables in subsequent
+chapters, but it is hopefully enlightening to see this alternative
+view.
+
+\subsection{Graphical syntax}
+
+A lambda term in graphical syntax has three kinds of nodes, shown in Figure~\ref{fig:lamgraphs}.  These
+may look similar to the tree syntax of Figure~\ref{fig:lamtrees}, but the similarity is superficial.
+Here, lambda terms are represented by graphs connecting 
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{lllll}
+  \begin{tikzpicture}
+    \node at (0,1.414) (a){\ };
+    \node at (1.414,-1.414)(b){\ };
+    \node at (-1.414,-1.414)(c){\ };
+    \node[circle,draw] at (0,0) (n){$\lambda$};
+    \path (n) edge (a)
+          edge (b)
+          edge (c);
+\end{tikzpicture}
+&\ \ \ \ \ \ \ &
+  \begin{tikzpicture}
+    \node at (0,1.414) (a){\ };
+    \node at (1.414,-1.414)(b){\ };
+    \node at (-1.414,-1.414)(c){\ };
+    \node[circle,draw] at (0,0) (n){@};
+    \path (n) edge (a)
+              edge (b)
+              edge (c);
+\end{tikzpicture}
+  &\ \ \ \ \ \ \  &
+  \begin{tikzpicture}
+    \node at (0,1.414) (a){\ };
+    \node at (1.414,-1.414)(b){\ };
+    \node at (-1.414,-1.414)(c){\ };
+    \node[regular polygon, regular polygon sides=3,draw] at (0,0) (n){\ };
+    \path (n) edge (a)
+              edge (b)
+              edge (c);
+\end{tikzpicture}
+\end{tabular}
+\end{center}
+\caption{The three kinds of nodes for graphical syntax of lambda terms}
+\label{fig:lamgraphs}
+\end{figure}
+
+
+\section{Exercises}
+

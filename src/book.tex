@@ -1,0 +1,79 @@
+\documentclass{book}[12pt]
+\usepackage{times}
+
+\usepackage{latexsym}
+\usepackage{MnSymbol}
+\usepackage{comment}
+\usepackage{url}
+\usepackage{fullpage}
+\usepackage{scrextend}
+\usepackage{proof}
+\usepackage{array}
+\usepackage{xspace}
+\usepackage{stmaryrd}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amsthm}
+\usepackage{makeidx}
+\usepackage{float}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes}
+
+\usepackage{thmtools}
+\declaretheorem[name=Theorem,shaded={},numberwithin=section]{theorem}
+\declaretheorem[sibling=theorem]{definition}
+\declaretheorem[sibling=theorem]{lemma}
+\declaretheorem[sibling=theorem]{corollary}
+
+\usepackage[pdftex,
+	pdfauthor={Aaron Stump},
+	pdftitle={Introduction to Lambda Calculus},
+	colorlinks,
+	urlcolor={blue},
+	linkcolor={blue},
+        citecolor={blue}]{hyperref}
+
+% style for figures
+\floatstyle{boxed}
+\restylefloat{table}
+\restylefloat{figure}
+
+
+\makeindex
+
+\begin{document}
+
+\title{Introduction to Lambda Calculus}
+
+\author{Aaron Stump \\
+Computer Science \\
+The University of Iowa
+}
+
+\maketitle
+\frontmatter
+
+\tableofcontents
+
+\mainmatter
+
+\include{definitions}
+
+\part{Untyped Lambda Calculus}
+\include{introduction}
+\include{syntax}
+\include{programming}
+\include{confluence}
+%\include{graphs}
+
+\part{Typed Lambda Calculus}
+
+\include{stlc}
+
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\input{book.ind}
+
+\end{document}

@@ -1,0 +1,659 @@
+\chapter{Programming in Lambda Calculus}
+\label{ch:prog}
+
+\section{Basic functions}
+\label{sec:basicfuncs}
+
+Let us consider a few basic lambda terms that are useful for
+programming in lambda calculus.  We will give names to the terms we
+consider, as meta-linguistic abbreviations.  Let us use the syntax $N
+:= t$ to indicate (in our meta-language) that we wish to use name $N$
+as an abbreviation for term $t$.  In all cases, our choice of names
+will be justified by the behavior of the term when applied to various
+arguments.  By behavior, I mean the term's $\beta$-reductions.
+
+\paradef{.5}{The identity function.} 
+\[
+\textit{id} := \lam{x}{x}
+\]
+\noindent This term really does behave like the mathematical
+(set-theoretic, let us say) identity function, since if we apply
+\textit{id} to anything, we just get back that same value.\index{identity \textit{id}}  We have
+{\large
+\[
+\textit{id}\ t \ \ \betaa^* \ \ t
+\]}
+
+\paradef{0}{Self-application operator.}
+\[
+\delta := \lam{x}{x\ x}
+\]
+\noindent This operator applies input $x$ to $x$. \index{self-application $\delta$}
+We also have
+\[
+\Omega := \delta\ \delta
+\]
+\noindent This term has no normal form, reducing forever to itself:\index{diverging term $\Omega$}
+\[
+\begin{array}{ll}
+  \underline{\delta}\ \delta & = \\
+  \underline{(\lam{x}{x\ x})\ \delta} & = \\
+  \delta\ \delta &\
+\end{array}
+\]
+
+\paradef{0}{Composition.}
+\[
+\textit{compose} := \lam{f}{\lam{g}{\lam{x}{f\ (g\ x)}}}
+\]
+\noindent This term can be applied to any terms $f$ and $g$, and it
+will return a term that behaves like their composition: it applies $f$
+after $g$ to its input $x$.  It is nice to borrow mathematical notation for
+function composition and write $f \circ g$ for $\textit{compose}\ f\ g$.
+Here are a few examples using \textit{compose}:\index{composition \textit{compose} (or $\circ$)}
+\begin{itemize}
+\item $\textit{id} \circ \textit{id} \ \ \betaa^*\ \ \textit{id}$
+  \item $\textit{delta}\circ \textit{delta} \ \ \betaa^*\ \ \lam{y}{y\ y\ (y\ y)}$
+\end{itemize}
+
+\paradef{.5}{Application operator.}
+\[
+\textit{app} := \lam{x}{\lam{y}{x\ y}}
+\]
+\noindent This term takes in inputs $x$ and $y$ and returns the result of applying $x$ to $y$.  So it is a term which acts like the term construct of application.
+
+\section{Representing numbers with the Church encoding}
+\label{sec:churchenc}
+
+For Church's original goal of a foundation for mathematics, it is
+paramount that there is some way to represent natural numbers, and the
+intuitively computable operations on them, as lambda terms.  Happily,
+there are several such \emph{lambda encodings} for representing data
+as lambda terms.  Here we see the first, which is Church's own encoding.\index{Church encoding}
+
+Any lambda encoding must represent data as lambda terms implementing
+some behavioral interface.  That is, data are defined by what they do,
+not what they are.  The idea of the Church encoding more specifically
+is to define numbers as their own iteration functions.  To explain
+in more detail, let us define the notion of iteration of a function:
+\[
+\begin{array}{lll}
+  \textit{Iter}_0\ f & = & \textit{id} \\ 
+  \textit{Iter}_{n+1}\ f & = & f \circ \textit{Iter}_n\ f
+\end{array}
+\]
+\noindent This definition is by recursion on $n\in\mathbb{N}$, and is
+defining a function from terms $f$ to terms.  (So the definition is a
+recursive definition, in our meta-language, of a term-to-term
+function.)  It states that the $0$-fold iteration of a function $f$ is
+just the identity, and that the $(n+1)$-fold iteration of $f$ is just
+$f$ composed with the $n$-fold iteration of $f$.  In other words,
+$\textit{Iter}_n\ f$ is
+\[
+\underbrace{f \circ \cdots \circ f}_{n}
+\]
+\noindent where we understand this to be \textit{id} if $n$ is $0$.
+
+Instead of thinking of $\textit{Iter}_n$ as a meta-language function,
+let us instead think of it as just a single term, by moving the $\lambda\ f$ to
+the right-hand side of the defining equations:
+\[
+\begin{array}{lll}
+  \textit{Iter}_n & = & \lam{f}{\textit{id}} \\ 
+  \textit{Iter}_{n+1} & = & \lam{f}{f \circ (\textit{Iter}_n\ f)}
+\end{array}
+\]
+\noindent Now the beauty of the Church encoding is to represent $n$
+to be $\textit{Iter}_n$.  Let us write $\rep{n}$ to mean the lambda
+term representing $n\in\mathbb{N}$.  Then the Church encoding defines:
+
+\[
+\begin{array}{lll}
+  \rep{0} & = & \lam{f}{\textit{id}} \\ 
+  \rep{n+1} & = & \lam{f}{f \circ (\rep{n}\ f)}
+\end{array}
+\]
+\noindent For some concrete examples, and reducing the redexes that arise from applying $\rep{n}$ to $f$ in the
+definition of $\rep{n+1}$, we take:
+
+\[
+\begin{array}{lll}
+  0 & := & \lam{f}{\lam{a}{a}} \\
+  1 & := & \lam{f}{\lam{a}{f\ a}} \\
+  2 & := & \lam{f}{\lam{a}{f\ (f\ a)}} \\
+  \multicolumn{3}{l}{\cdots} \\
+  \rep{n+1} & := & \lam{f}{\lam{a}{\underbrace{f \circ \cdots \circ f}_{n+1}}} \\
+  \multicolumn{3}{l}{\cdots}
+\end{array}
+\]
+
+\noindent We may observe that $1$ and $\textit{app}$ are $\alpha$-equivalent
+terms.  When representing data as lambda terms, such coincidences
+sometimes occur.
+
+\section{Operations on Church-encoded natural numbers}
+
+Let us see now how to define some basic operations on Church-encoded
+natural numbers.
+
+\paradef{.5}{Successor.} The mathematical successor
+operation on $\mathbb{N}$ takes in $n$
+and returns $n+1$ (i.e., the next number).  Here is the definition for
+Church-encoded naturals:
+\[
+\textit{succ}\ :=\ \lam{n}{\lam{f}{\lam{x}{f\ (n\ f\ x)}}}
+\]
+\noindent To understand this, let us first see an example:
+\[
+\begin{array}{ll}
+  \underline{\textit{succ}}\ 2 & = \\
+  (\lam{n}{\lam{f}{\lam{x}{f\ (n\ f\ x)}}})\ 2 & = \\
+  \lam{f}{\lam{x}{f\ (\underline{2}\ f\ x)}} & = \\
+  \lam{f}{\lam{x}{f\ (\underline{\lam{f}{\lam{x}{f\ (f\ x)}}\ f}\ x)}} & \leadsto \\
+  \lam{f}{\lam{x}{f\ (\underline{(\lam{x}{f\ (f\ x)})\ x})}} & \leadsto \\
+  \lam{f}{\lam{x}{f\ (f\ (f\ x))}} & = \\
+  3
+\end{array}{ll}
+\]
+More generally, if $n\in\mathbb{N}$, then $\textit{succ}\ \rep{n}$ reduces to
+\[
+\lam{f}{\lam{x}{f\ (\rep{n}\ f\ x)}}
+\]
+\noindent As we saw above, the result of applying $\rep{n}$ to $f$ is the $n$-fold composition of $f$.  So this
+expression is equal to 
+\[
+\lam{f}{\lam{x}{f\ (\underbrace{f \cdots (f }_{n}\ x))}}
+\]
+\noindent And then we notice that we have just tacked an extra $f$ on to the left, so we can write this as:
+\[
+\lam{f}{\lam{x}{\underbrace{f \cdots (f }_{n+1}\ x)}}
+\]
+\noindent And this is equal to $\rep{n+1}$, as desired.
+
+\paradef{.5}{Addition.}  To compute $\rep{m+n}$ from $\rep{m}$ and $\rep{n}$, the idea is similar to that for successor, except
+that here we wish to add not just one $f$ to the left of $\underbrace{f \cdots (f }_{n}\ x)$, but $m$ applications of $f$.  For
+then we would have $m+n$ applications of $f$ as desired for $\rep{m+n}$.  And fortunately, $\rep{m}$ itself gives us the power
+to apply $f$ $m$ times to some starting value $Q$, by writing $m\ f\ Q$.  Here, we want $n\ f\ x$ for $Q$.  So the definition
+of addition is:
+\[
+\textit{add} \ := \ \lam{m}{\lam{n}{\lam{f}{\lam{x}{m\ f\ (n\ f\ x)}}}}
+\]
+
+\paradef{0}{Predecessor.} Kleene was the first to crack the puzzle of how to compute the $\rep{n}$ from $\rep{n+1}$.
+Here is a simple definition, which is, to my knowledge, original.  
+\[
+\begin{array}{lll}
+\textit{just} & := & \lam{n}{\lam{j}{\lam{k}{j\ n}}} \\
+\textit{pred} & := & \lam{n}{n\ (\lam{m}{\textit{just}\ (m\ \textit{succ}\ 0)})\ 0\ \textit{id}\ 0}
+\end{array}
+\]
+\noindent Writing $F$ for $\lam{m}{\textit{just}\ (m\ \textit{succ}\ 0)}$, let us first see how $2\ F\ 0$ computes:
+\[
+\begin{array}{ll}
+  \underline{2\ F}\ 0 & \leadsto \\
+  \underline{(\lam{a}{F\ (F\ a)})\ 0} & \leadsto \\
+  F\ (\underline{F\ 0}) & \leadsto \\
+  F\ (\textit{just}\ (\underline{0\ \textit{succ}}\ 0)) & \leadsto \\
+  F\ (\textit{just}\ (\underline{\lam{a}{a}\ 0})) & \leadsto \\
+  F\ (\underline{\textit{just}\ 0}) & \leadsto \\
+  \underline{F\ \lam{j}{\lam{k}{j\ 0}}} & \leadsto \\    
+  \textit{just}\ (\underline{(\lam{j}{\lam{k}{j\ 0}})\ \textit{succ}}\ 0) & \leadsto \\
+  \textit{just}\ (\underline{(\lam{k}{\textit{succ}\ 0})\ 0}) & \leadsto \\
+  \underline{\textit{just}\ (\textit{succ}\ 0)} & \leadsto \\
+  \lam{j}{\lam{k}{j\ (\textit{succ}\ 0)}} & \ 
+\end{array}
+\]
+\noindent Now here is the reduction for $\textit{pred}\ 2$:
+\[
+\begin{array}{ll}
+  \underline{\textit{pred}\ 2} & \leadsto \\
+  \underline{2\ F\ 0}\ \textit{id}\ 0 & \leadsto^* \textnormal{[by above reduction sequence]}\\
+  \underline{(\lam{j}{\lam{k}{j\ (\textit{succ}\ 0)}})\ \textit{id}}\ 0 & \leadsto \\
+  \underline{(\lam{k}{\textit{id}\ (\textit{succ}\ 0)})\ 0} & \leadsto \\
+  \underline{\textit{id}\ (\textit{succ}\ 0)} & \leadsto \\
+  \underline{\textit{succ}\ 0} & \leadsto^* \\
+  1 &\ 
+\end{array}
+\]
+  
+
+\paradef{0}{Another predecessor.}  Here is a different, trickier definition of predecessor, which one can find online (sadly, I do
+not know who invented it):
+\[
+\textit{pred}\ :=\ \lam{n}{\lam{f}{\lam{x}{n\ (\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{x})\ \textit{id}}}}
+\]
+\noindent To understand how this works, let us write $F$ for $\lam{g}{\lam{h}{h\ (g\ f)}}$, and $A$ for $\lam{h}{x}$, and
+see how $3\ F\ A$ computes:
+\[
+\begin{array}{ll}
+  \underline{3\ F}\ A & \leadsto \\
+  (\lam{x}{F\ (F\ (F\ x))})\ A & \leadsto \\
+  F\ (F\ (\underline{F\ A})) & = \\
+  F\ (F\ (\underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ \lam{h}{x}})) & \leadsto \\  
+  F\ (F\ (\lam{h}{h\ \underline{((\lam{h}{x})\ f)}})) & \leadsto \\
+  F\ (\underline{F}\ (\lam{h}{h\ x})) & = \\
+  F\ (\underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{h\ x})}) & \leadsto \\      
+  F\ (\lam{h}{h\ \underline{((\lam{h}{h\ x})\ f)}}) & \leadsto \\
+  \underline{F}\ (\lam{h}{h\ (f\ x)}) & = \\
+  \underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{h\ (f\ x)})} & \leadsto \\
+  \lam{h}{h\ \underline{((\lam{h}{h\ (f\ x)})\ f)}} & \leadsto \\
+  \lam{h}{h\ (f\ (f\ x))} & \
+\end{array}
+\]
+
+What is happening here?  We see that $3\ F\ A$ has reduced to something similar to $f\ (f\ (f\ x))$, but
+with a critical twist: we have $\lambda$-abstracted away the function for the first call to $f$, leaving
+the other calls intact.  This gives us what we could think of as a ``flexible'' version of $f\ (f\ (f\ x))$, where we get
+to choose which function to call instead of $f$ for the outer application.  And the definition of predecessor makes use of this flexibility
+by applying the whole result to \textit{id}.  That produces, then, just $f\ (f\ x)$.  So, understanding $F$ and $A$ to be grafted
+into the expression on the second line below (capturing their free variables $f$ and $x$), we have
+\[
+\begin{array}{ll}
+  \textit{pred}\ 3 & \leadsto^* \\
+  \lam{f}{\lam{x}{\underline{3\ F\ A}\ \textit{id}}} & \leadsto^* \\
+  \lam{f}{\lam{x}{\underline{(\lam{h}{h\ (f\ (f\ x))})\ \textit{id}}}} & \leadsto \\
+  \lam{f}{\lam{x}{\underline{(\textit{id}\ (f\ (f\ x)))}}} & \leadsto \\
+  \lam{f}{\lam{x}{f\ (f\ x)}} & = \\  
+  2 &\ 
+\end{array}
+\]
+
+In some ways this is similar, as perhaps is inevitable, to the first
+version of predecessor we saw: a value is computed from $\rep{n}$ that
+is like $\rep{n}$ but allows calling another function -- in particular, \textit{id} -- instead of a
+final successor.  In this second version of predecessor, that
+value is computed underneath bindings of $f$ and $x$, so that
+\textit{id} gets called on applications of $f$ to $x$.  In the
+first version of predecessor, \textit{id} gets called on the entire
+predecessor term, including bindings of $f$ and $x$.
+
+\section{Representing booleans}
+\label{sec:bool}
+
+A simpler datatype than that of the natural numbers is the boolean
+type, with values \textit{true} and \textit{false}.  The Church
+encoding of this type is
+\[
+\begin{array}{lll}
+  \textit{true} & := & \lam{x}{\lam{y}{x}} \\
+  \textit{false} & := & \lam{x}{\lam{y}{y}}
+\end{array}
+\]
+\noindent Each boolean accepts two inputs (one at a time), and returns
+one of these.  \textit{true} returns the first, while \textit{false}
+returns the second.  Based on this idea, it is easy to see how to define
+various boolean operations:
+\[
+\begin{array}{lll}
+  \textit{not} & := & \lam{x}{x\ \textit{false}\ \textit{true}} \\
+  \textit{and} & := & \lam{x}{\lam{y}{x\ y\ \textit{false}}}
+\end{array}
+\]
+\noindent We negate (with \textit{not}) a boolean by applying it to
+\textit{false} and then \textit{true}.  If the boolean itself is
+\textit{true}, then it will return the first of these two inputs,
+namely \textit{false}; if it is \textit{false}, it will return
+\textit{true}.  This is the desired behavior.  Similarly, \textit{and}
+takes in inputs \textit{x} and \textit{y}.  It returns the result of
+applying \textit{x} to \textit{y} and then \textit{false}.  If
+\textit{x} is \textit{true}, then the result will be \textit{y}; and
+this is what we would like for conjunction, since if the first boolean
+(\textit{x}) is true, the conjunction's value coincides with the value
+of the second (\textit{y}): true if \textit{y} is true, and false if
+\textit{y} is false.  And if \textit{x} is \textit{false}, then the
+second input (out of \textit{y} and \textit{false}) will be chosen; again,
+the desired behavior, since this means conjoining \textit{false} with
+anything will reduce to \textit{false}.
+
+It is worth emphasizing that applying boolean operations to values
+that are not booleans does not result in an error as it might
+in some programming languages.  Here, every lambda term has a well-defined
+behavior in the form of its $\beta$-reductions.  But the results of
+applications violating the intuitive typings we have in mind for
+these operations may be somewhat inscrutable.
+
+\section{Ordered pairs}
+
+It is often convenient to program with a representation of ordered pairs $(x,y)$, given representations of $x$ and $y$.
+To construct the representation of a pair, we use this function:
+\[
+\textit{pair} \ :=\ \lam{x}{\lam{y}{\lam{c}{c\ x\ y}}}
+\]
+\noindent The idea is that given the components $x$ and $y$ of the
+pair, we represent (by the \textit{pair} function) the pair itself as
+$\lam{c}{c\ x\ y}$.  This definition embodies the idea that a pair of
+$x$ and $y$ is something that can make $x$ and $y$ available for
+subsequent computation.  This is done in the encoding by applying the
+pair to a function which is expecting the components.
+
+For example, we may define \textit{fst} (``first'') and \textit{snd}
+(``second''; these names are often used for these operations in
+functional programming languages) as follows:
+\[
+\begin{array}{lll}
+  \textit{fst} & := & \lam{p}{p\ \textit{true}} \\
+  \textit{snd} & := & \lam{p}{p\ \textit{false}}
+\end{array}
+\]
+\noindent Since \textit{true} returns the first of two arguments, and
+\textit{false} the second, they are used to select either the first or
+the second component, respectively, when passed as an argument to the
+pair.  (As usual, these functions assume input \textit{p} is a pair
+of the form $\lam{c}{c\ x\ y}$, and may give unexpected results
+if applied to terms not of that form.)
+
+\section{Representing numbers with the Scott encoding}
+
+In Section~\ref{sec:churchenc}, we saw an elegant representation of
+numbers as lambda terms, called the Church encoding.  Every number $n$
+is represented as the $n$-fold composition operator.  While many
+functions are concisely definable this way, the predecessor operation
+required quite some ingenuity, and is asymptotically less efficient
+than we might reasonably expect (taking time linear in $n$, instead of
+constant time).  In this section, we consider an alternative lambda
+encoding due to Dana Scott, which has a straightforward constant-time
+predecessor.  With the Scott encoding, each number can be thought of
+as a function $t$ that informs the caller whether $t$ represents a
+successor number or zero.  In the former case, it also provides the
+caller with the representation of the predecessor. The definition is:
+\[
+\begin{array}{lll}
+  0 & := & \lam{f}{\lam{x}{x}} \\
+  1 & := & \lam{f}{\lam{x}{f\ 0}} \\
+  2 & := & \lam{f}{\lam{x}{f\ 1}} \\
+  \multicolumn{3}{l}{\cdots} \\
+  \rep{n+1} & := & \lam{f}{\lam{x}{f\ \rep{n}}} \\
+  \multicolumn{3}{l}{\cdots} 
+\end{array}
+\]
+So every $\rep{n}$ accepts two inputs $f$ and $x$, and if
+$n$ is $0$, returns $x$; and if $n$ is $m+1$ for some $m$, returns
+$f\ \rep{m}$.  This makes available the predecessor $\rep{m}$, and
+thus the actual predecessor function is easily defined:
+\[
+\textit{pred} \ := \ \lam{n}{n\ \textit{id}\ 0}
+\]
+\noindent Here, \textit{id} is passed for $f$ and $0$ for $x$.  This means
+that for any Scott-encoded successor number, we have the following reduction:
+\[
+\begin{array}{ll}
+  \underline{\textit{pred}}\ \rep{n+1} & = \\
+\underline{(\lam{n}{n\ \textit{id}\ 0})\ \rep{n+1}} & \leadsto \\
+\underline{\rep{n+1}}\ \textit{id}\ 0 & = \\
+\underline{(\lam{f}{\lam{x}{f\ \rep{n}}})\ \textit{id}}\ 0 & \leadsto \\
+\underline{(\lam{x}{\textit{id}\ \rep{n}})\ 0} & \leadsto \\
+\underline{\textit{id}\ \rep{n}} & \leadsto \\
+\rep{n} & \
+\end{array}
+\]
+\noindent And this is the desired result: $\textit{pred}\ \rep{n+1}
+\betaa^* \rep{n}$.  Furthermore, we can see that this reduction required
+four steps of $\beta$-reduction, independent of the value of $n$.
+This is in contrast to the case with the Church encoding, where the
+number of steps was proportional to $n$.
+
+\section{The Y combinator}
+\label{sec:y}
+
+While it is very straightforward to define predecessor on
+Scott-encoded numbers, other operations pose a problem.  The Church
+encoding takes $n$-fold iteration as the representation of $n$, and
+hence has no difficulty defining iterative functions.  Not so the
+Scott encoding, and indeed, the only natural way to recurse is to
+avail ourselves of a term implementing \emph{general recursion} (this
+is recursion that may fail to terminate).  (It should be noted that
+there is an extremely tricky way to derive iteration for Scott encodings, but
+we will not consider this here~\cite{lepigre+19}.)
+
+General recursion in lambda calculus is provided using a term traditionally
+denoted $Y$:
+\[
+Y \ :=\ \lam{f}{(\lam{x}{f\ (x\ x)})\ (\lam{x}{f\ (x\ x)})}
+\]
+\noindent This term is usually called a \emph{combinator}, which is an
+informal notion indicating that a lambda term is of interest primarily
+for use as a building block for defining other functions (as opposed,
+say, to implementing some particular algorithm valuable in its own
+right).\index{combinator}\index{Y combinator} In this sense, some other terms we have
+encountered so far, like identity and composition functions
+(\textit{compose}, \textit{id} of Section~\ref{sec:basicfuncs}), are
+also reasonably considered combinators.
+
+Terminology aside, let us see how the $Y$ combinator works and how we
+can use it to define operations on Scott-encoded numbers.  Suppose $t$ is any
+lambda term not containing $x$ free.  Then we have:
+\[
+\begin{array}{ll}
+  \underline{Y}\ t & = \\
+  \underline{(\lam{f}{(\lam{x}{f\ (x\ x)})\ (\lam{x}{f\ (x\ x)})})\ t} & \leadsto \\
+  \underline{(\lam{x}{t\ (x\ x)})\ (\lam{x}{t\ (x\ x)})} & \leadsto \\
+  t\ \underline{((\lam{x}{t\ (x\ x)})\ (\lam{x}{t\ (x\ x)}))} & =_\beta \\
+  t\ (Y\ t)
+\end{array}
+\]
+\noindent So we see that $Y\ t$ is $\beta$-equivalent to $t\ (Y\ t)$.  This fact is so important that
+it is worth highlighting as an equation:
+\[
+Y\ t\ =_\beta \ t\ (Y\ t)
+\]
+\noindent Swapping sides will shortly be revealing:
+\[
+t\ (Y\ t)\ =_\beta \ Y\ t
+\]
+\noindent This matches the form of a fixed-point equation for $t$.  In mathematics, a fixed point of a function $F$ is an input $X$ such that
+\[
+F(X) = X
+\]
+\noindent Here, with application of lambda terms playing the role of function invocation, and $\beta$-equivalence taking the place of equality,
+we can write this as:
+\[
+F\ X =_\beta X
+\]
+\noindent For term $t$, this becomes
+\[
+t\ X =_\beta X
+\]
+\noindent And indeed, the equation we derived above is of this form, with $Y\ t$ for $X$.
+
+Now what is the significance of this?  It shows us that, contrary to
+what we usually find in mathematics, in lambda calculus every function
+has a fixed point.  How peculiar!  Certainly some mathematical
+functions have fixed points.  Take (mathematical) predecessor on
+natural numbers, with the assumption that \textit{pred} of $0$ is $0$.
+Then $0$ is a fixed point of \textit{pred}.  But consider boolean negation.
+There is no boolean $b$ such that $\textit{not}\ b$ equals $b$ (neither possible
+value for $b$, namely \textit{true} or \textit{false}, works).  Strangely, though,
+in lambda calculus, we have just seen the general equation of $t\ (Y\ t)$ and $Y\ t$.
+This means that
+\[
+\textit{not}\ (Y\ \textit{not}) =_\beta Y\ \textit{not}
+\]
+\noindent Something unusual is going on, and indeed, as we will see when we
+turn to denotational semantics of lambda calculus, interpreting lambda calculus
+in set theory requires significant ingenuity.
+
+But to remain at the linguistic level for the moment, let us try to get an intuition
+for how every term $t$ can have $Y\ t$ for a fixed point.  Let us write $U$ for $\lam{x}{t\ (x\ x)}$.  We have seen that
+\[
+\begin{array}{ll}
+  \underline{Y\ t} & \leadsto \\
+  \underline{U\ U} & \leadsto \\
+  t\ (U\ U)&\ 
+\end{array}
+  \]
+\noindent  This reduction sequence may then be continued as long as we wish:
+\[
+\begin{array}{ll}
+  t\ \underline{(U\ U)}&\leadsto \\
+  t\ (t\ \underline{(U\ U)})&\leadsto \\  
+  t\ (t\ (t\ \underline{(U\ U)}))&\leadsto \\
+  \multicolumn{2}{l}{\cdots}
+\end{array}
+\]
+\noindent If we had some notion of infinite lambda term, we might identify the limit of this infinite reduction sequence,
+as this infinite right-nested application of $t$:
+\[
+t\ (t\ (t\ \cdots
+\]
+\noindent One can indeed develop an infinitary lambda calculus
+allowing infinitary terms like this~\cite{kennaway1997}; but this is
+beyond the scope of the book.  But with an infinitary term like
+this as an informal guiding intuition, we can see how the fixed-point equation
+makes sense.  $Y\ t$ denotes (informally) an infinite
+right-nested application of $t$.  Applying $t$ one more time to this
+does not change the infinite application, as it is still infinite!
+
+Note that $U\ U$ is a lot like $\delta\ \delta$:
+\[
+\begin{array}{lll}
+  U\ U & = & (\lam{x}{t\ (x\ x)})\ \lam{x}{t\ (x\ x)} \\
+  \delta\ \delta & = & (\lam{x}{x\ x})\ \lam{x}{x\ x}
+\end{array}
+\]
+\noindent We have just inserted $t$, but otherwise retain the central idea of self-application
+for divergence.
+
+How is this esoterically explained construction useful for programming?  Contrast
+the situation with iteration using Church-encoded numbers.  There, $\rep{n}$ gives us the
+power to repeat a function $n$ times:
+\[
+\underbrace{t\ \cdots\ (t}_n\ x)
+\]
+\noindent But what if we need to repeat a function more times than
+just $n$ times?  We could imagine somehow increasing how many times
+the composition is iterated, to some bigger number $n'$.  But the most
+computationally powerful option is to extend the $n$-fold iteration of
+$t$ to an infinite iteration of $t$:
+\[
+t\ (t\ (t\ \cdots
+\]
+\noindent But this is just what (informally) $Y\ t$ gives us!  So we
+are using the power of diverging computation which we get through
+self-application, to allow ourselves as many iterations of $t$ as we
+could possibly need.  Fundamental results of recursion theory then
+imply that we will of necessity need to accept the possibility of
+divergence: we have given ourselves the ability to apply $t$ as many
+times as we wish, and we cannot rule out the possibility that it gets
+applied infinitely many times with no normal form reachable.
+
+But there is still a puzzle.  How can we ever reach any normal form when
+$Y\ t$ has an infinite reduction sequence?  The answer is that existence
+of a single infinite reduction sequence does not mean all reduction
+sequences are infinite.  Indeed, for a very simple example, consider
+\[
+(\lam{x}{\lam{y}{y}})\ \Omega
+\]
+\noindent This term has both an infinite reduction sequence, and also infinitely many finite reduction sequences.  For examples of the first and second, in order, consider:
+\[
+\begin{array}{l}
+  (\lam{x}{\lam{y}{y}})\ \underline{\Omega}\ \leadsto\ (\lam{x}{\lam{y}{y}})\ \underline{\Omega}\ \leadsto \ \cdots \\
+  \underline{(\lam{x}{\lam{y}{y}})\ \Omega} \ \leadsto \ \lam{y}{y}
+\end{array}
+\]
+\noindent The normalizing reduction sequence (the second one) drops out the non-normalizing $\Omega$ subterm.
+Similarly, in our infinitary term
+\[
+t\ (t\ (t\ \cdots
+\]
+\noindent it could happen that there is a reduction to a normal form where an application of $t$ ends up dropping
+its argument.  We will see an example next.
+
+\section{Recursive operations on Scott-encoded numbers}
+
+Let us define addition on Scott-encoded numbers using the $Y$ combinator.  The idea is that we wish to implement the following
+system of recursive equations, using $Y$ to implement the recursion:
+\[
+\begin{array}{lll}
+  \textit{add}\ 0\ m & = & m \\
+  \textit{add}\ (\textit{succ}\ p)\ m & = & \textit{succ}\ (\fbox{\textit{add}}\ p\ m)
+\end{array}
+\]
+\noindent Since the Scott-encoding gives us a way to distinguish whether a number is $0$ or a successor number, we can
+easily choose whether between these equations based on the first input.  We then need to use $Y$ to implement the framed
+recursion on the right-hand side of the second equation.  The definition is, the following, using helper definition \textit{addh} for
+easier consideration below:
+\[
+\begin{array}{lll}
+  \textit{addh} & := & \lam{\textit{add}}{\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (\textit{add}\ p\ m)})\ m}}} \\
+  \textit{add} & := & Y\ \textit{addh}
+  \end{array}
+\]
+\noindent Let us see how this works with an example, writing $U$ for $\lam{x}{\textit{addh}\ (x\ x)}$:
+\[
+\begin{array}{ll}
+  \underline{\textit{add}}\ 2\ 2 & = \\
+  \underline{Y\ \textit{addh}}\ 2\ 2 & \leadsto \\
+  \underline{U\ U}\ 2\ 2 & \leadsto \\  
+  \underline{\textit{addh}}\ (U\ U)\ 2\ 2 & = \\
+  \underline{(\lam{\textit{add}}{\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (\textit{add}\ p\ m)})\ m}}})\ (U\ U)}\ 2\ 2 & \leadsto \\  
+  \underline{(\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (U\ U\ p\ m)})\ m}})\ 2\ 2} & \leadsto^2 \\
+  \underline{2}\ (\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 2 & = \\
+  \underline{(\lam{f}{\lam{x}{f\ 1}})\ (\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 2} & \leadsto^2 \\
+  \underline{(\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 1} & \leadsto \\
+  \textit{succ}\ \underline{(U\ U\ 1\ 2)}) & \leadsto^* \\
+  \textit{succ}\ (\textit{succ}\ \underline{(U\ U\ 0\ 2)}) & \leadsto^* \\
+  \textit{succ}\ (\textit{succ}\ 2) & = \\
+  4 &\ 
+  \end{array}
+\]
+\noindent We see in detail that $U\ U\ \rep{n+1}\ m$ reduces to
+$\textit{succ}\ (U\ U\ \rep{n}\ m)$.  So we peel successors off the
+first argument until we reach $0$, and then we return the second
+argument (i.e., $m$).
+
+\section{Exercises}
+
+\subsection{$\beta$-reductions for some simple terms}
+
+\begin{enumerate}
+\item For each of the following terms, write down a $\beta$-normal form to which the term reduces.  You do not need to write out all the steps in a $\beta$-reduction sequence.  Please just give a $\beta$-normal form.
+
+  \begin{enumerate}
+  \item $\textit{app}\ \circ\ \textit{id}$
+\vspace{.5cm}
+  \item $\textit{app}\ \circ\ \textit{app}$
+\vspace{.5cm}
+  \item $\lam{z}{2\ z}$
+\vspace{.5cm}
+  \item $\delta\ \textit{app}$
+\vspace{.5cm}
+  \item $2\ 2$
+\vspace{.5cm}
+  \item $\textit{not}\ 2$ (as noted above, terms like this which violate intuitive typings do have a
+    well-defined behavior)
+\vspace{.5cm}
+  \item $\textit{and}\ 1$
+  \end{enumerate}
+
+\item Please write out a maximal $\beta$-reduction sequence (renaming is not necessary, so we can use just $\betar$
+  instead of $\betaa$) starting with $\textit{pred}\ 2$.
+
+\end{enumerate}
+
+\subsection{Programming in lambda calculus}
+
+\begin{enumerate}
+\item Define a disjunction operator (i.e., boolean ``or'') on Church-encoded booleans, and demonstrate that it is working by writing a maximal $\betaa$-reduction sequence starting with $\textit{or}\ \textit{false}\ \textit{true}$.
+
+\item \ \textbf{[Challenge]} Find an alternative definition of \textit{pred} with similar form as above, namely
+  \[
+  \lam{n}{\lam{f}{\lam{x}{n\ F'\ A'\ t_1 \cdots t_k}}}
+  \]
+  \noindent for some terms $F'$ and $A'$ grafted into this expression (which hence might have free occurrences of $f$ or $x$ that get bound by the $\lambda$-abstractions of those two variables), and some extra terms $t_1, \cdots, t_k$.
+  The critical requirement is that where $\rep{n+1}\ F\ A$ reduces (with the definition of $F$ and $A$ in the text) to $\lam{h}{h\ (\underbrace{f \cdots (f}_n\ x))}$, your version with your $F'$ and $A'$ and some of your extra terms should
+  reduce to $\lam{h}{\underbrace{f \cdots (f}_n\ (h\ x))}$.
+
+\item Define a function \textit{flip} which reverses the order of components in a pair.
+
+\item Define a subtraction operation on Scott-encoded numbers.  Your term is free to invoke \textit{pred} for predecessor,
+  and the $Y$ combinator (and other terms we have defined so far, if you wish).
+
+  \item The term $Y\ Y$ has many different (infinite) reductions.  Try
+    to indicate a little of the complexity of this term by showing
+    prefixes of some of its reduction sequences.  It would be
+    interesting to organize these initial parts of reduction sequences
+    into a tree, so we can see how reduction can branch out in different
+    ways from the starting point of $Y\ Y$.  (This problem is not concerned
+    with giving an exact correct answer, but rather with showing that you
+    have explored the reduction behavior of this rather exotic term.)
+\end{enumerate}

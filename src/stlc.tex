@@ -1,0 +1,445 @@
+\chapter{Simply Typed Lambda Calculus}
+
+\section{Syntax for types}
+\label{sec:synstlc}
+
+We assume a non-empty set $B$ of base types.  These are just any
+mathematical objects we wish, that will play the role of atomic
+(indivisible) types.  We will use $b$ as a meta-variable for elements
+of type $B$.  Similarly as for our metavariables for
+$\lambda$-calculus variables (see the start of
+Section~\ref{sec:synlam}), we will adopt the convention that different
+meta-variables refer to different base types, in any particular
+meta-linguistic discussion. \index{base types} The syntax of types is
+then:
+\[
+\textit{simple types}\ T\ ::= \ b\ |\ T \to T'
+\]
+\noindent There is one parsing convention for simple types, which is
+that arrow is right-associative.  So a type like $a \to b \to c$
+should be parsed as $a \to (b \to c)$.
+
+Let us consider some examples of simple types.  We might have the type
+$\textit{bool} \to \textit{bool}$ for boolean negation, and other
+unary (1-argument) boolean operations.  Similarly, a type like
+$\textit{bool} \to \textit{bool} \to \textit{bool}$ could describe
+conjunction, disjunction, and any other binary boolean operations.
+For a higher-order example, a type like $(\textit{nat} \to
+\textit{bool}) \to \textit{nat}$ could be the type for a minimization
+function \textit{minimize}, where $\textit{minimize}\ p$ returns the
+smallest natural number $n$ such that $p\ n$ returns \textit{true}.
+
+Now, it will happen that our notion of typing will not allow
+interesting computations with values of atomic types like
+\textit{bool}.  So we will not actually be able to type functions like
+the ones just described in pure simply typed lambda calculus (STLC).
+But STLC is the right framework for characterizing the functional
+behavior (via arrow types $T \to T'$) of lambda terms, and thus forms
+the core of most other more advanced type systems, including ones
+where types like \textit{bool} are definable within the system.
+
+\section{Realizability semantics of types}
+\label{sec:stlcrealizability}
+
+One very natural way to understand a type is as a specification
+of the behavior of programs.  For example, in a programming
+language like Java, suppose a function is declared with the signature
+
+\begin{verbatim}
+  int f(int x, int y);
+\end{verbatim}
+
+\noindent Then intuitively, the meaning of this is that function
+\verb|f| expects two integers \verb|x| and \verb|y| as input and, if
+it terminates normally (without raising an exception, diverging,
+etc.), then it will return an integer as output.
+
+This idea that a type is a form of specification for programs can be
+made precise for STLC using the recursive definition of
+Figure~\ref{fig:stlcrealize}.  This defines an interpretation $\interp{T}$ for
+any simple type $T$, assuming a function $I$ which interprets the base types of $B$.
+The values computed by the semantic function and $I$ are sets of terms.  So mathematically,
+writing \textit{Types} for the set of all simple types and \textit{Terms} for the set
+of all terms of untyped $\lambda$-calculus (and using the standard notation $\mathcal{P} S$ for
+the set of all subsets of a set $S$), we have:
+\begin{itemize}
+\item $\interp{-} \in \textit{Types} \to \mathcal{P}\ \textit{Terms}$
+\item $I \in B \to \mathcal{P}\ \textit{Terms}$
+\end{itemize}
+
+Let us see some examples of this semantics for types.
+
+\begin{figure}
+\[
+\begin{array}{lll}
+\interp{b} & = & I(b) \\
+\interp{T_1\to T_2} & = & \{ t\ |\ \all{t' \in \interp{T_1}}{(t\ t') \in\interp{T_2}} \}
+\end{array}
+\]
+\caption{Realizability semantics of types, with respect to an assignment $I$ of meanings for base types}
+\label{fig:stlcrealize}
+\end{figure}
+
+\subsection{Examples}
+
+Suppose that $B$ consists of two base types, $b$ and $b'$.  Let $I(b)$ be the set of Church-encoded booleans,
+and let $I(b')$ be the set of Church-encoded natural numbers (see Section~\ref{sec:churchenc}).  Then
+certainly we have the following:
+\begin{itemize}
+\item $\textit{true}\in\interp{b}$
+\item $0\in\interp{b'}$
+\item $\textit{true}\not\in\interp{b'}$
+\end{itemize}
+
+\noindent This looks promising.  But we would expect that with this definition, the negation
+function (\textit{not}, of Section~\ref{sec:bool}) on Church-encoded booleans
+would be in $\interp{b\to b}$.  But it is not!  The reason is that
+\[
+\textit{not}\in\interp{b \to b}
+\]
+\noindent is equivalent, by the second equation of Figure~\ref{fig:stlcrealize}, to
+\[
+\all{t'\in\interp{b}}{(\textit{not}\ t')\in\interp{b}}
+\]
+\noindent But $\interp{b}$ does not contain any applications, so it
+cannot contain $\textit{not}\ t'$ (since this is an application) for
+any $t'$.
+
+The problem here is not in the semantics, but rather the choice of
+interpretation function $I$ for the base types.  We will generally
+want $I(b)$ to be closed under $\beta$-expansion (Definition~\ref{def:betaexpand}), in the following sense:
+
+\begin{definition}[$\beta$-expansion closed]
+  A set $S$ of terms is $\beta$-expansion closed if $t\in S$ and $t'
+  \leadsto t$ imply $t' \in S$.
+\end{definition}
+
+Such a set is closed under $\beta$-expansion in the sense that one cannot leave the
+set by following $\beta$-expansion steps.  So let us try the example again,
+but this time using $\beta$-expansion closed sets for $I(b)$ and $I(b')$,
+namely:
+\[
+\begin{array}{lll}
+  I(b) & := & \{ t\ |\ t \leadsto^* \mathbb{B}\} \\
+  I(b') & := & \{ t\ |\ t \leadsto^* \mathbb{N}\} 
+\end{array}
+\]
+\noindent Here, for brevity, I am writing $t \leadsto^* S$, where $S$
+is a set of terms, to mean that there exists $t'\in S$ such that
+$t\leadsto^* t'$.  I am also writing $\mathbb{B}$ for the set of
+Church-encoded booleans, and $\mathbb{N}$ for the set of
+Church-encoded natural numbers.
+
+The facts about meanings of types that we found above still hold for the
+$\beta$-expansion closures of the sets of Church-encoded booleans and naturals,
+respectively.  But now we can obtain some other interesting facts:
+\begin{itemize}
+\item $\textit{not}\in\interp{b\to b}$.  To show this, it suffices to
+  assume an arbitrary $t'$ with $t'\leadsto^*\mathbb{B}$, and show
+  that $\textit{not}\ t'\leadsto^*\mathbb{B}$. Suppose $t'\leadsto^*\textit{true}$.
+  Then we have
+  \[
+  \textit{not}\ t' \ \leadsto^*\  \textit{not}\ \textit{true}\ \leadsto^*\ \textit{false}
+  \]
+  \noindent And similarly, if $t'\leadsto^*\textit{false}$, we have
+  \[
+  \textit{not}\ t' \ \leadsto^*\  \textit{not}\ \textit{false}\ \leadsto^*\ \textit{true}
+  \]
+\end{itemize}
+
+\todo{more examples}
+
+\section{Type assignment rules}
+
+To obtain a computable approximation of the realizability semantics of the previous section,
+we use a system of rules for deriving facts of the form $\Gamma \vdash t : T$; such facts
+are called \emph{typing judgments}\index{typing judgment}.  Here, $\Gamma$
+is a \emph{typing context}, with the following syntax:
+\[
+\textit{typing contexts}\ \Gamma\ ::=\ \cdot\ |\ \Gamma , x : T
+\]
+\noindent There is an empty context $\cdot$, and a context may be
+extended on the right with a binding $x : T$.  This represents an
+assumption that $x$ has type $T$.  We will type open terms (terms with
+free variable occurrences) by making assumptions, in typing contexts,
+about the types of their free variables.  The typing rules are in Figure~\ref{fig:stlctpassign}.
+
+\begin{figure}
+\[
+\begin{array}{lll}
+\infer{\Gamma\vdash x : T}{\textit{Find}\ x:T\ \textit{in}\ \Gamma} 
+
+&
+
+\infer{\Gamma\vdash \lam{x}{t} : T' \to T}
+      {\Gamma,x:T'\vdash t:T}
+
+&
+
+\infer{\Gamma\vdash t_1\ t_2 : T}
+      {\Gamma\vdash t_1 : T' \to T &
+       \Gamma\vdash t_2 : T'}
+      \\
+      \\
+
+\infer{\textit{Find}\ x:T\ \textit{in}\ (\Gamma, x:T)}{\ }
+
+&
+
+\infer{\textit{Find}\ x:T\ \textit{in}\ (\Gamma, y:T')}{\textit{Find}\ x:T\ \textit{in}\ \Gamma}
+
+&
+
+\ 
+\end{array}
+\]
+\caption{Type-assignment rules for simply typed lambda calculus, with rules for looking up a variable declaration in the context $\Gamma$}
+\label{fig:stlctpassign}
+\end{figure}
+
+\subsection{Examples}
+
+An example typing derivation is given in Figure~\ref{fig:stlcex}.  Let us adopt the convention that
+we do not show derivations of \textit{Find} judgments.  Thus, we will allow derivations to terminate
+in applications of the variable rule (first rule in Figure~\ref{fig:stlctpassign}) with premise elided, as long
+as that elided premise is actually derivable.
+
+\begin{figure}
+  \[
+  \infer{\cdot \vdash \lam{x}{\lam{y}{x\ y\ y}} : (b \to b \to b) \to b \to b}
+        {\infer{\cdot,x:b \to b \to b \vdash \lam{y}{x\ y\ y} : b \to b}
+          {\infer{\Gamma \vdash x\ y\ y : b}
+            {\infer{\Gamma \vdash x\ y : b \to b}
+              {\infer{\Gamma \vdash x : b \to b \to b}{\ }
+              & \infer{\Gamma \vdash y : b}{\ }}
+            &\infer{\Gamma \vdash y : b}{\ }}}}
+  \]
+\caption{Example typing derivation in STLC, where $\Gamma$ abbreviates the typing context $\cdot,x:b \to b \to b, y : b$}
+\label{fig:stlcex}
+\end{figure}
+
+
+\section{Relational semantics}
+
+Realizability semantics (Section~\ref{sec:stlcrealizability})
+interprets types as sets of terms.  We may also interpret types as
+relations on terms.  The definition is in Figure~\ref{fig:relsemstlc},
+where we assume now that we have $I \in (B \to
+\mathcal{P}\ (\textit{Terms} \times \textit{Terms}))$, and we then
+define $\interp{-}\in (\textit{Types} \to \mathcal{P}\ (\textit{Terms}
+\times \textit{Terms}))$.  The set $\mathcal{P}\ (\textit{Terms} \times
+\textit{Terms})$ is the set of all subsets of the cartesian product
+$\textit{Terms} \times \textit{Terms}$.  Since such a subset is just a
+relation, we are interpreting base types and then types as relations on
+terms.
+
+\begin{figure}
+  \[
+\begin{array}{lll}
+   \interp{b} & = & I(b) \\
+   \interp{T_1\to T_2} & = & \{ (t_1,t_2)\ |\ \all{(t', t'') \in \interp{T_1}}{(t_1\ t', t_2\ t'') \in\interp{T_2}} \}
+\end{array}
+  \]
+\caption{Relational semantics of types}
+\label{fig:relsemstlc}
+\end{figure}
+
+\subsection{Examples}
+
+Suppose we have base types $b$ and $b'$, interpreted as just below.
+Recall that $t\ \uparrow$ means that $t$ is not normalizing
+(Definition~\ref{def:nonnorm}).  The examples will also use some
+defined terms from Chapter~\ref{ch:prog}: $\textit{false}$ for
+$\lam{x}{\lam{y}{y}}$, \textit{id} for $\lam{x}{x}$, and $\Omega$ for
+the diverging term $(\lam{x}{x\ x})\ \lam{x}{x\ x}$.
+\[
+\begin{array}{lll}
+  I(b) & := & \{ (t,t')\ |\ t =_\beta t' \} \\
+  I(b') & := & \{ (t,t')\ |\ t =_\beta t' =_\beta \textit{false} \}
+\end{array}
+\]
+\noindent Then we have the following relational facts:
+\begin{itemize}
+\item $\lam{x}{x\ \Omega}$ and $\lam{x}{x\ \textit{id}}$ are related
+  by $\interp{b' \to b}$.  To prove this using the semantics of
+  Figure~\ref{fig:relsemstlc}, we must assume we have terms $t$ and
+  $t'$ which are related by $\interp{b'}$, and show that
+  $(\lam{x}{x\ \Omega})\ t$ is related to $(\lam{x}{x\ \textit{id}})\ t'$ by
+  $\interp{b}$.  Since $\interp{b} = I(b)$, the latter may be shown this
+  way:
+  \[
+  (\lam{x}{x\ \Omega})\ t \ =_\beta \  (\lam{x}{x\ \Omega})\ \textit{false} \ =_\beta \ \textit{false}\ \Omega\ =_\beta\ \textit{id} \ =_\beta\ \textit{false}\ \textit{id}\ =_\beta \ (\lam{x}{x\ \textit{id}})\ \textit{false} \ =_\beta \ (\lam{x}{x\ \textit{id}})\ t'
+      \]
+
+ \item That same pair of terms is not related by $\interp{b \to b}$,
+      which we can show, by the semantics of Figure~\ref{fig:relsemstlc},
+      by finding terms $t$ and $t'$ related by $\interp{b}$, but
+      where $(\lam{x}{x\ \Omega})\ t$ and $(\lam{x}{x\ \textit{id}})\ t'$
+      are not related by $\interp{b}$.  Take $t$ and $t'$ both to be \textit{id},
+      and we have:
+     \[
+     (\lam{x}{x\ \Omega})\ t\ =\ (\lam{x}{x\ \Omega})\ \textit{id}\ =_\beta\ \Omega \ \neq_\beta\ \textit{id}\ =_\beta\ (\lam{x}{x\ \textit{id}})\ \textit{id}\ = \ (\lam{x}{x\ \textit{id}})\ t'
+     \]
+     \end{itemize}
+
+\section{The Curry-Howard isomorphism}
+
+Curry observed the deep connection between typed lambda calculus and
+logic which, developed further by Howard, is known as the Curry-Howard
+isomorphism.  The starting point is to connect STLC with minimal
+implicational logic.  This logic is for proving formulas of the
+following form, where $p$ is from some nonempty set $P$ of atomic
+propositions:
+\[
+F ::= p\ |\ F_1 \to F_2
+\]
+\noindent This syntax is the same, disregarding the names of the
+metavariables, as that for simple types $T$ (introduced at the start
+of Section~\ref{sec:synstlc}).  Figure~\ref{fig:minimpl} gives
+inference rules for deriving expressions of the form $S \vdash F$,
+where $S$ is a list of formulas, taken as assumptions.  These rules
+are (again, disregarding differences in the names of the
+meta-variables in question) exactly those of STLC, except without
+the terms.
+
+\begin{figure}
+\[
+\begin{array}{lllll}
+\infer{S \vdash F}{\textit{Find}\ F\ \textit{in}\ S}
+
+&\ \ &
+
+\infer{S \vdash F_1 \to F_2}{S , F_1 \vdash F_2}
+
+&\ \ &
+
+\infer{S \vdash F_2}{S \vdash F_1\to F_2 \qquad S \vdash F_1}
+
+\\ \\
+
+\infer{\textit{Find}\ F\ \textit{in}\ (S, F)}{\ }
+
+&\ \ &
+
+\infer{\textit{Find}\ F\ \textit{in}\ (S, F')}{\textit{Find}\ F\ \textit{in}\ S}
+
+&\ \ &
+
+\ 
+
+\end{array}
+\]
+\caption{Proof rules for minimal implicational logic, with rules for looking up an assumption in a list $S$ of formulas}
+\label{fig:minimpl}
+\end{figure}
+
+Every STLC typing derivation can be translated to a derivation in
+minimal implicational logic, assuming that the set $B$ of base types
+in STLC is translated to a subset of the set $P$ of atomic
+propositions.  For simplicity, in the following example, let us assume
+that $B \subseteq P$ (so the translation is the identity function).
+Then we may translate the derivation of Figure~\ref{fig:stlcex} to the
+proof in Figure~\ref{fig:minimplex}.  The derivation contains an
+unnecessary derivation of $S \vdash b$ from the top to about the
+middle of the overall derivation.  It is unnecessary because we can
+already derive $S \vdash b$ just using the rule for assumptions (first
+rule of Figure~\ref{fig:minimpl}).  Does this mean the correspondence
+with the STLC derivation is somehow awry?  Not at all.  For we could
+just as well derive $\cdot \vdash \lam{x}{\lam{y}{y}} : (b \to b \to
+b) \to b \to b$ in STLC.  The structure of the shorter proof in
+minimial implicational logic exactly mirrors this simpler lambda term.
+
+Where one may be content to have proved a theorem without minding
+too much the details of the proof, in typed lambda calculus the term
+that corresponds to a different proof may be a computationally different
+function, as in the example just considered: $\lam{x}{\lam{y}{y}}$
+behaves very differently, from a computational perspective, from
+$\lam{x}{\lam{y}{x\ y\ y}}$.
+
+\begin{figure}
+  \[
+  \infer{\cdot \vdash  (b \to b \to b) \to b \to b}
+        {\infer{\cdot,b \to b \to b \vdash b \to b}
+          {\infer{S \vdash b}
+            {\infer{S \vdash b \to b}
+              {\infer{S \vdash b \to b \to b}{\ }
+              & \infer{S \vdash b}{\ }}
+            &\infer{S \vdash b}{\ }}}}
+  \]
+\caption{Example derivation in minimal implicational logic, where $S$ abbreviates $b \to b \to b, b$}
+\label{fig:minimplex}
+\end{figure}
+
+
+\section{Exercises}
+
+\subsection{Realizability semantics for types}
+
+\begin{enumerate}
+  
+\item Suppose $B$ is $\{ b_1, b_2, b_3\}$, and define $I$, recalling
+  from Definition~\ref{def:betanf} that $t\not\betaa$ means that $t$
+  is a $\betaa$-normal form:
+\begin{eqnarray*}
+I(b_1) & = & \{\ t\ |\ \exists t'.\ t\ \betaa^*\ t'\ \betaa\ t'\ \} \\
+I(b_2) & = & \{\ t\ |\ \exists t'.\ t \betaa^*\ t'\ \not\betaa \} \\
+I(b_3) & = & \{\ t\ |\ \exists t'.\ t \betaa^*\ t'\ \leadsto\ \lam{x}{x} \} \\
+\end{eqnarray*}
+
+\noindent Also, define the term $t$ as follows:
+\[
+t\ =\ \lam{f}{(\lam{x}{x\ x})\ (f\ \lam{x}{x\ x})}
+\]
+
+\begin{enumerate}
+
+\item Prove that $t$ is in $\interp{b_2}$.
+
+\item Prove that $t$ is also in $\interp{b_3 \to b_1}$.
+
+\item Prove that $t$ is also in $\interp{(b_2 \to b_3)\to b_3}$.
+
+\item Find a term $t'$ that is in $\interp{(b_3 \to b_2) \to b_2}$
+  and also in $\interp{b_1 \to b_1}$; please explain why your term is in both those sets. 
+
+\end{enumerate}
+\end{enumerate}
+ 
+\subsection{Type assignment rules}
+\label{sec:stlcextp}
+
+\begin{enumerate}
+
+\item Write out typing derivations, using the rules of Figure~\ref{fig:stlctpassign}, for
+  the following typing judgments, assuming base types $a$, $b$, and $c$.  You do not need
+  to write out the derivations for the \textit{Find} judgment for looking up typings of variables in the
+  context.
+  \begin{enumerate}
+  \item $\cdot, x:b, y : b\to b \vdash y\ (y\ x) : b$
+  \item $\cdot \vdash \lam{x}{\lam{y}{x}} : a \to b \to a$
+  \item $\cdot \vdash \lam{x}{\lam{y}{\lam{z}{x\ z\ (y\ z)}}} : (a \to b \to c) \to (a \to b) \to a \to c$
+  \end{enumerate}
+\end{enumerate}  
+
+\subsection{Relational semantics}
+
+\begin{enumerate}
+\item Suppose we have a base type $b$, and let $I(b)$ be
+  \[
+  \{ (t,t')\ |\ (t\ t')\ \downarrow \}
+  \]
+  \noindent Recall that $t\ \downarrow$ means that $t$ is normalizing (Definition~\ref{def:normalizing}).
+
+  \begin{enumerate}
+  \item Argue in detail that $\lam{x}{\lam{y}{x\ (y\ \textit{id})}}$ and $\lam{y}{\lam{z}{z\ y}}$
+    are related by $\interp{b \to b}$.
+
+  \item Give another example of a pair of terms in $\interp{b \to b}$.  Please argue in detail for membership in this relation.
+  \end{enumerate}
+\end{enumerate}
+
+\subsection{Curry-Howard isomorphism}
+
+\begin{enumerate}
+\item Translate the typing derivations you did in Section~\ref{sec:stlcextp} above, into proofs in miminal implicational logic.
+  \end{enumerate}
