@@ -259,9 +259,24 @@ consider next.
  version of Church's original proposal for dealing with renaming of
  variables~\cite{church41}.  During reduction, substitution is not
  allowed in case it would lead to capture, and variables must be
- explicitly renamed first in additional reduction steps.  
+ explicitly renamed first in additional reduction steps.  I have
+ several reasons for pursuing this approach.  First, as variable
+ binding is one of the central technical issues of lambda calculus, it
+ is better, certainly when first learning the theory, not too try to
+ ignore the problem by assuming things are arranged so that it never
+ arises.  Second, variable binding turns out to be one of the most
+ tricky aspects both for implementation of languages incorporating
+ lambda calculus, and for formalizing the meta-theory of such
+ language in computer theorem-proving systems.  So again, dealing with
+ the problem head-on seems best, as it may encourage development of the theory
+ in a way that minimizes, rather than ignores, the issue.  Perhaps
+ we will find better ways to formalize lambda calculus if we isolate
+ the places where renaming is needed, for example.  And finally,
+ some research is directly concerned with issues of renaming
+ in lambda calculus, and thus needs to be completely explicit about
+ the issue.  An example is works seeking to analyze when renaming
+ can always be avoided~\cite{vanoostrom23}.
 
-% ### why am I following that approach?
 
 \subsection{Substitution as a partial function}
 
@@ -386,7 +401,7 @@ $(\lam{y}{x})\ \lam{z}{z}$, which does contain $x$ free.  Hence, the first condi
 \noindent\textit{Intuitive idea.} Substituting variable $y$ for
 variable $x$ and then reversing that (to substitute $x$ for $y$)
 leaves the term unchanged, as long as it is legal to replace $x$ with
-$y$ (avoiding capture).
+$y$ (avoiding capture), and as long as the original term does not have any free $y$ (since then substituting $x$ for $y$ would replace those free occurrences of $y$ with free occurrences of $x$, and the term would be different in the end).
 
 \vspace{.2cm}
 
@@ -893,13 +908,12 @@ of the closure operators above.
 \begin{lemma}[reflexive-transitive closure preserves compatibility]
 \label{lem:comprtc}
   Suppose $R$ is a relation on terms, and consider $\leadsto_R^*$.
-  This relation is unchanged by further taking the compatible closure
-  again ($(\leadsto_R^*)_R$).  More succinctly: $\leadsto_R^* = (\leadsto_R^*)_R$.
+  Then the relations $\leadsto_R^*$  and its compatible closure $\leadsto_{\leadsto_R^*}$ are the same.
 \end{lemma}
 \begin{proof}
-  Since $\leadsto_R^*\ \subseteq\ (\leadsto_R^*)_R$ by the inclusion rule
-  of Figure~\ref{fig:compcl}, it suffices to show $(\leadsto_R^*)_R\ \subseteq\ \leadsto_R^*$.
-  So assume $t\ (\leadsto_R^*)_R\ t'$ and show $t \leadsto_R^* t'$.  The proof
+  Since $\leadsto_R^*\ \subseteq\ \leadsto_{\leadsto_R^*}$ by the inclusion rule
+  of Figure~\ref{fig:compcl}, it suffices to show $\leadsto_{\leadsto_R^*}\ \subseteq\ \leadsto_R^*$.
+  So assume $t\ (\leadsto_{\leadsto_R^*}\ t'$ and show $t \leadsto_R^* t'$.  The proof
   is by induction on the assumed derivation (with the rules of Figure~\ref{fig:compcl}).
 
   \case{ } 
@@ -1467,8 +1481,8 @@ For each pair of terms, indicate whether or not they are $\alpha$-equivalent:
   \noindent In other words, this problem asks you to find an example of a term where a second $\alpha$-equivalence step is required in order to
   complete a sequence of $\beta$-reductions.  As a hint (because the problem is a bit tricky):
   \begin{itemize}
-  \item If all bound and free variables are distinct from each other, then it is never necessary to rename, so it would seem like an initial $=_\alpha$-step would suffice to obviate any subsequent renamings; 
-    \item but ask yourself if there is a way that starting with a term where all bound and free variables are distinct from each other, one could arrive at a term that does not have that property; and then use this to construct a term where a second $=_\alpha$-step is required.
+  \item If all bound and free variables are distinct from each other, then it is never necessary to rename to perform a single $\beta$-reduction, so it might seem like an initial $=_\alpha$-step would suffice to obviate any subsequent renamings... 
+    \item ...but it is not! Ask yourself if there is a way that starting with a term where all bound and free variables are distinct from each other, one could arrive at a term that does not have that property; and then use this to construct a term where a second $=_\alpha$-step is required.
 
   \end{itemize}
 \end{enumerate}
