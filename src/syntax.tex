@@ -158,20 +158,41 @@ terms, $\lambda$ introduces $x$ as a local variable, whose scope
 (i.e., the part of the expression where this variable introduction is
 in force) is the body of the $\lambda$-abstraction.
 
-The following basic terminology is used to describe occurrences of a
-variable $x$; i.e., nodes in term (in tree form) labeled by a
-variable.  If the occurrence is the left child of a $\lambda$-node,
-then this is called a \emph{binding} occurrence\index{variable!binding
-  occurrence}.  If the occurrence is somewhere inside the right
-subtree of a $\lambda$-node introducing $x$, then the occurrence is
-called \emph{bound}\index{variable!bound occurrence}.  And finally, if
-the variable occurrence is neither binding nor bound it is called
-\emph{free}\index{variable!free occurrence}: it is not in the scope of
-a $\lambda$-node binding $x$.  It is common to write $\textit{FV}(t)$
-for the set of variables with free occurrences in $t$\index{FV}.  See
-Figure~\ref{fig:varocc} for an example illustrating this terminology.
+We have defined terms as certain finite labeled trees.  An occurrence of a variable $x$ in such a term
+is a node of the tree that is labeled with $x$. The following basic terminology is then used for occurrences.
+
+\begin{definition}[Binding occurrence]
+  An occurrence of $x$ in $t$ is called binding iff it is
+  the left child of a node labeled with $\lambda$.\index{variable!binding
+  occurrence}
+\end{definition}
+
+\begin{definition}[Bound occurrence]
+  An occurrence of $x$ in $t$ is called bound iff it occurs
+  somewhere in the right subtree of a node $N$ labeled with $\lambda$,
+  where the left child of $N$ is labeled $x$.\index{variable!bound occurrence}
+\end{definition}
+
+\begin{definition}[Free occurrence]
+  An occurrence of $x$ in $t$ that is neither binding nor bound is called free.\index{variable!free occurrence}
+\end{definition}
+
+
+\noindent Figure~\ref{fig:varocc} gives examples of this terminology, for the term $(\lam{x}{x\ (x\ y)})\ (x\ y)$.
+
+\begin{definition}[Free variable]
+  A variable $x$ is free in $t$ iff it has a free occurrence in $t$.  The set of free variables of $t$ is denoted $\textit{FV}(t)$.
+  \index{variable!free}\index{FV}.
+\end{definition}
+
+\noindent The free variables of the term shown in Figure~\ref{fig:varocc} are $x$ and $y$, because each of these has a free occurrence (boxed node) in the tree.
+
+\begin{definition}[Open and closed terms]
 A term with at least one free variable occurrence is called \emph{open}\index{term!open},
 and a term with no free variable occurrences is called \emph{closed}\index{term!closed}.
+\end{definition}
+
+\noindent The term in Figure~\ref{fig:varocc} is open, because it has a non-empty set of free variables.  In contrast, the term $\lam{x}{x\ x}$ is closed, because its sole variable $x$ occurs only binding or bound.
 
 \begin{figure}
 \large
@@ -198,6 +219,36 @@ and a term with no free variable occurrences is called \emph{closed}\index{term!
     \label{fig:varocc}
 
 \end{figure}
+
+\section{Positions and subterms}
+\label{sec:pos}
+
+It is sometimes useful to be able to refer precisely to subterms of
+terms, including variable occurrences, using \emph{positions}.  A
+position $\pi$ is a finite sequence of $0$s and $1$s. Let us write
+$\epsilon$ for the empty sequence, and $i\pi$ for the sequence that
+begins with $i\in\{0,1\}$ and then continues with sequence $\pi$. Let
+us elide $\epsilon$ in nonempty sequences. \index{position}
+
+\begin{definition}[Subterm at a position]
+  The subterm $t|_\pi$ of term $t$ at position $\pi$ is defined recursively by:
+  \begin{eqnarray*}
+    t|_\epsilon & = & t \\
+    (t_1\ t_2)|_{i\pi} & = & t_i|_\pi \\
+    (\lam{x}{t})|_{1} & = & x \\
+    (\lam{x}{t})|_{2\pi} & = & t|_\pi
+  \end{eqnarray*}
+\end{definition}
+
+For example, consider again the term $(\lam{x}{x\ (x\ y)})\ (x\ y)$ shown in Figure~\ref{fig:varocc}.  We have:
+\begin{itemize}
+  \item $((\lam{x}{x\ (x\ y)})\ (x\ y))|_{21} = (x\ y)|_1 = x|_\epsilon = x$
+  \item $((\lam{x}{x\ (x\ y)})\ (x\ y))|_{11} = (\lam{x}{x\ (x\ y)})|_1 = x$
+  \item $((\lam{x}{x\ (x\ y)})\ (x\ y))|_{122} = (\lam{x}{x\ (x\ y)})|_{22} = (x\ (x\ y))|_{2} = (x\ y)|_{\epsilon} = x\ y$
+\end{itemize}
+
+The subterm of $t$ at a position can be undefined, if the position extends beyond the leaves of tree $t$.  For example,
+$((\lam{x}{x\ (x\ y)})\ (x\ y))|_{111}$ is undefined, because the position $111$ points past the binding occurrence of variable $x$.
 
 \section{Capture-avoiding substitution}
 \label{sec:subst}
@@ -594,62 +645,6 @@ a set a (binary) relation on $A$.\index{binary relation on a set}
   Hence, $\leadsto_\beta$ is nondeterministic.
 \end{proof}
 
-\subsection{An alternative definition using contexts}
-
-Another way to define the same $\curva_\beta$ relation is with
-contexts.  Let us first introduce the concept of \emph{grafting},
-which is just substitution that does \underline{not} avoid
-capture\index{grafting}.  We will write $\langle t/x\rangle t'$ for
-the grafting relation (there does not seem to be a generally adopted
-notation for grafting).  The definition, given in
-Figure~\ref{fig:grafting}, is essentially the same as the one for substitution,
-except that the last clause does not impose
-any requirements on $\textit{FV}(t')$.
-
-\begin{figure}
-\large
-\[
-  \begin{array}{lll}
-\    \langle t'/x \rangle x & = & t' \\
-\    \langle t'/x \rangle t & = & t, \textnormal{if }x\not\in\textit{FV}(t); \textnormal{otherwise:} \\
-\    \langle t'/x \rangle(t_1\ t_2) & = & (\langle t'/x\rangle t_1)\ \langle t'/x\rangle t_2 \\
-\    \langle t'/x\rangle\lam{y}{t} & = & \lam{y}{\langle t'/x\rangle t}
-  \end{array}
-\]
-  \caption{Recursive definition of grafting, a total function similar to substitution but intentionally allowing variable capture.}
-  \label{fig:grafting}
-  \end{figure}
-
-\begin{definition}[context]
-  A term $t$ is called a context iff it contains exactly one free
-  occurrence of a special fixed variable $q$\index{context}.  If $t$
-  is a context, then we write $\langle t'/q \rangle t$ more briefly as
-  $\langle t' \rangle t$.
-  \end{definition}
-
-\noindent Using contexts, we may give the following alternative definition of the $\beta$-reduction relation:
-
-\begin{definition}[Single-step $\beta$-reduction (contexts)]
-\label{def:betactxt}
-The single-step $\beta$-reduction relation
-$\curva_\beta$ is alternatively defined to be the set of all ordered pairs with first component $\langle (\lam{x}{t})\ t' \rangle t''$
-  and second component $\langle [t'/x]t \rangle t''$, for some $x$, $t$, $t'$, and $t''$ (with $t''$ a context and $[t'/x]t$ defined).
-\end{definition}
-
-The idea of this definition is to express that (in operational terms)
-if you find a $\beta$-redex somewhere in some possibly bigger term
-$t_1$, then you may reduce $t_1$ by contracting that $\beta$-redex and
-then rebuilding the rest of the term $t_1$ around the contractum.  The
-definition expresses finding $(\lam{x}{t})\ t'$ in possibly bigger
-term $t_1$ by writing $\langle(\lam{x}{t})\ t'\rangle t''$ for $t_1$.
-In other words, you have some term $t_1$ that contains a designated
-occurrence of the redex, because $t_1$ is what you get when you graft
-the redex in for the single occurrence of special variable $q$ in some
-context $t''$.  The reason that we use grafting for this definition
-instead of substitution is to allow contraction of redexes that
-contain free variables that are bound in $t_1$.  We will discuss this
-point further in the examples next.
-
 \subsection{Examples}
 \label{sec:betaex}
 
@@ -705,10 +700,106 @@ point further in the examples next.
     infinite reductions (to be defined just below).
     \end{enumerate}
 
+\subsection{An alternative definition using contexts}
+
+Another way to define the same $\curva_\beta$ relation is with
+contexts.  Let us first introduce the concept of \emph{grafting},
+which is just substitution that does \underline{not} avoid
+capture\index{grafting}.  We will write $\langle t/x\rangle t'$ for
+the grafting relation (there does not seem to be a generally adopted
+notation for grafting).  The definition, given in
+Figure~\ref{fig:grafting}, is essentially the same as the one for substitution,
+except that the last clause does not impose
+any requirements on $\textit{FV}(t')$.
+
+\begin{figure}
+\large
+\[
+  \begin{array}{lll}
+\    \langle t'/x \rangle x & = & t' \\
+\    \langle t'/x \rangle t & = & t, \textnormal{if }x\not\in\textit{FV}(t); \textnormal{otherwise:} \\
+\    \langle t'/x \rangle(t_1\ t_2) & = & (\langle t'/x\rangle t_1)\ \langle t'/x\rangle t_2 \\
+\    \langle t'/x\rangle\lam{y}{t} & = & \lam{y}{\langle t'/x\rangle t}
+  \end{array}
+\]
+  \caption{Recursive definition of grafting, a total function similar to substitution but intentionally allowing variable capture.}
+  \label{fig:grafting}
+  \end{figure}
+
+\begin{definition}[context]
+  A term $t$ is called a context iff it contains exactly one free
+  occurrence of a special fixed variable $q$\index{context}.  If $t$
+  is a context, then we write $\langle t'/q \rangle t$ more briefly as
+  $\langle t' \rangle t$.  The variable $q$ is called the hole of the
+  context\index{context!hole}.
+  \end{definition}
+
+\noindent Using contexts, we may give the following alternative definition of the $\beta$-reduction relation:
+
+\begin{definition}[Single-step $\beta$-reduction (contexts)]
+\label{def:betactxt}
+The single-step $\beta$-reduction relation
+$\curva_\beta$ is alternatively defined to be the set of all ordered pairs with first component $\langle (\lam{x}{t})\ t' \rangle t''$
+  and second component $\langle [t'/x]t \rangle t''$, for some $x$, $t$, $t'$, and $t''$ (with $t''$ a context and $[t'/x]t$ defined).
+\end{definition}
+
+The idea of this definition is to express that (in operational terms)
+if you find a $\beta$-redex somewhere in some possibly bigger term
+$t_1$, then you may reduce $t_1$ by contracting that $\beta$-redex and
+then rebuilding the rest of the term $t_1$ around the contractum.  The
+definition expresses finding $(\lam{x}{t})\ t'$ in possibly bigger
+term $t_1$ by writing $\langle(\lam{x}{t})\ t'\rangle t''$ for $t_1$.
+In other words, you have some term $t_1$ that contains a designated
+occurrence of the redex, because $t_1$ is what you get when you graft
+the redex in for the single occurrence of special variable $q$ in some
+context $t''$.  The reason that we use grafting for this definition
+instead of substitution is to allow contraction of redexes that
+contain free variables that are bound in $t_1$.  We will discuss this
+point further in the examples next.
+
+\subsection{One more alternative: replacement at a position}
+
+Yet one further alternative definition of single-step $\beta$-reduction
+is using the notion of replacement of a subterm at a position.
+
+\begin{definition}[Replacement at a position]
+  The term $t[t']_\pi$ replacing the subterm of $t$ at position $\pi$ by $t'$ is defined recursively by:
+  \begin{eqnarray*}
+    t[t']_\epsilon & = & t' \\
+    (t_1\ t_2)[t']_{1\pi} & = & (t_1[t']_\pi)\ t_2 \\
+    (t_1\ t_2)[t']_{2\pi} & = & t_1\ (t_2[t']_\pi) \\    
+    (\lam{x}{t})[t']_{2\pi} & = & \lam{x}.(t[t']_\pi)
+  \end{eqnarray*}
+\end{definition}
+
+\noindent For an example:
+\[
+\begin{array}{ll}
+  (\lam{x}{\lam{y}{x\ y}})[y\ \lam{z}{z}]_{22} & = \\
+  \lam{x}{((\lam{y}{x\ y})[y\ \lam{z}{z}]_{2})} & = \\
+  \lam{x}{\lam{y}{((x\ y)[y\ \lam{z}{z}]_{\epsilon})}} & = \\
+  \lam{x}{\lam{y}{(y\ \lam{z}{z})}}
+\end{array}
+\]
+Note that replacement of binding occurrences of variables is not allowed by this definition.
+
+Using replacement, we can give yet another definition for single-step $\beta$-reduction:
+
+\begin{definition}[Single-step $\beta$-reduction (replacement at position)]
+\label{def:betapos}
+The single-step $\beta$-reduction relation
+$\curva_\beta$ is alternatively defined to be the set of all ordered pairs with first component $t''[(\lam{x}{t})\ t']_\pi$
+and second component $t''[[t'/x]t]_\pi$, for some $x$, $t$, $t'$, $t''$, and $\pi$, where $\pi$ is a legal position of $t''$
+and $[t'/x]t$ defined.
+\end{definition}
+
+This definition uses a position to name where a $\beta$-redex is to be found and contracted, instead of using the hole of a context
+to show where the contraction takes place.
+
 \section{Definitions using closure operators}
 \label{sec:clos}
 
-In what follows, yet a third way of defining single-step
+In what follows, yet another way of defining single-step
 $\beta$-reduction will prove illuminating, which is via
 \textbf{closure operators} on relations.\index{closure operator}
 Such an operator takes a relation $R$ and produces some new relation (let us
@@ -905,32 +996,15 @@ of the closure operators above.
   \]
   \end{proof}
 
-\begin{lemma}[reflexive-transitive closure preserves compatibility]
-\label{lem:comprtc}
-  Suppose $R$ is a relation on terms, and consider $\leadsto_R^*$.
-  Then the relations $\leadsto_R^*$  and its compatible closure $\leadsto_{\leadsto_R^*}$ are the same.
+\begin{lemma}[reflexive-transitive closure is compatible with $\lambda$-abstraction]
+\label{lem:rtclam}
+Suppose $R$ is a relation on terms.  
+If $t\ \leadsto_R^*\ t'$, then $\lam{x}{t}\ \leadsto_R^*\ \lam{x}{t'}$.
 \end{lemma}
 \begin{proof}
-  Since $\leadsto_R^*\ \subseteq\ \leadsto_{\leadsto_R^*}$ by the inclusion rule
-  of Figure~\ref{fig:compcl}, it suffices to show $\leadsto_{\leadsto_R^*}\ \subseteq\ \leadsto_R^*$.
-  So assume $t\ (\leadsto_{\leadsto_R^*}\ t'$ and show $t \leadsto_R^* t'$.  The proof
-  is by induction on the assumed derivation (with the rules of Figure~\ref{fig:compcl}).
-
-  \case{ } 
-  \[
-  \infer{t\ (\leadsto_R^*)_R\ t'}{t \leadsto_R^* t'}
-  \]
-  \noindent The desired conclusion for this inclusion inference is its premise: $t \leadsto_R^* t'$.
+We proceed by induction on the assumed derivation, again following the three rules of Figure~\ref{fig:rtcl}.
 
   \case{ }
-  \[
-  \infer{\lam{x}{t}\ (\leadsto_R^*)_R\ \lam{x}{t'}}{t\ (\leadsto_R^*)_R\ t'}
-  \]
-  \noindent By the induction hypothesis, we have $t\ \leadsto_R^*\ t'$.  We
-  proceed by inner induction on the derivation of this fact, to show
-  the desired $\lam{x}{t}\ \leadsto_R^*\ \lam{x}{t'}$.
-
-  \case{ (inner)}
   \[
   \infer{t \leadsto_R^* t'}{t \leadsto_R t'}
   \]
@@ -938,19 +1012,19 @@ of the closure operators above.
   \[
   \infer{\lam{x}{t} \leadsto_R^* \lam{x}{t'}}
         {\infer{\lam{x}{t} \leadsto_R \lam{x}{t'}}
-          {t \leadsto_R t'}}
+               {t \leadsto_R t'}}
   \]
 
-  \case{ (inner)} 
+  \case{ }
   \[
   \infer{t \leadsto_R^* t}{\ }
   \]
-  \noindent This case forces $t' = $.  We construct the following, again applying the reflexivity rule:
+  \noindent This case forces $t' = t$.  We construct the following, again applying the reflexivity rule:
   \[
   \infer{\lam{x}{t} \leadsto_R^* \lam{x}{t}}{\ }
   \]
 
-  \case{ (inner)}
+  \case{ }
   \[
   \infer{t \leadsto_R^* t'}{t \leadsto_R^* t'' & t'' \leadsto_R^* t'}
   \]
@@ -960,9 +1034,32 @@ of the closure operators above.
                                              & \infer[\textit{IH}]{\lam{x}{t''} \leadsto_R^* \lam{x}{t'}}{t'' \leadsto_R^* t'}}
   \]
 
-  \noindent This concludes the inner induction for the case where the compatible closure rule is the $\lambda$-abstraction rule.
+\end{proof}
 
-\todo{need to fill in proofs for application rules}
+\begin{lemma}[reflexive-transitive closure preserves compatibility]
+\label{lem:comprtc}
+  Suppose $R$ is a relation on terms, and consider $\leadsto_R^*$.
+  Then the relations $\leadsto_R^*$  and its compatible closure $\leadsto_{\leadsto_R^*}$ are the same.
+\end{lemma}
+\begin{proof}
+  Since $\leadsto_R^*\ \subseteq\ \leadsto_{\leadsto_R^*}$ by the inclusion rule
+  of Figure~\ref{fig:compcl}, it suffices to show $\leadsto_{\leadsto_R^*}\ \subseteq\ \leadsto_R^*$.
+  So assume $t\ \leadsto_{\leadsto_R^*}\ t'$ and show $t \leadsto_R^* t'$.  The proof
+  is by induction on the assumed derivation (with the rules of Figure~\ref{fig:compcl}).
+
+  \case{ } 
+  \[
+  \infer{t\ \leadsto_{\leadsto_R^*}\ t'}{t \leadsto_R^* t'}
+  \]
+  \noindent The desired conclusion for this inclusion inference is its premise: $t \leadsto_R^* t'$.
+
+  \case{ }
+  \[
+  \infer{\lam{x}{t}\ \leadsto_{\leadsto_R^*}\ \lam{x}{t'}}{t\ \leadsto_{\leadsto_R^*}\ t'}
+  \]
+  \noindent By the induction hypothesis, we have $t\ \leadsto_R^*\ t'$.  The result
+  then follows by Lemma~\ref{lem:rtclam}. 
+
 
   \end{proof}
         
@@ -1248,7 +1345,7 @@ chapter ($\Omega$, Section~\ref{sec:basicfuncs}).  Finally, it is also
 sometimes of interest to consider the equivalence closure of
 $\beta$-reduction with renaming:
 
-\begin{definition}{$\beta$-equivalence}
+\begin{definition}[$\beta$-equivalence]
   We define $\approx$ as the equivalence closure of $\curva$; i.e., $=_{\curva}$.
   \end{definition}
 
