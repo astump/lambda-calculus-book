@@ -234,9 +234,9 @@ us elide $\epsilon$ in nonempty sequences. \index{position}
   The subterm $t|_\pi$ of term $t$ at position $\pi$ is defined recursively by:
   \begin{eqnarray*}
     t|_\epsilon & = & t \\
-    (t_1\ t_2)|_{i\pi} & = & t_i|_\pi \\
-    (\lam{x}{t})|_{1} & = & x \\
-    (\lam{x}{t})|_{2\pi} & = & t|_\pi
+    (t_0\ t_1)|_{i\pi} & = & t_i|_\pi \\
+    (\lam{x}{t})|_{0} & = & x \\
+    (\lam{x}{t})|_{1\pi} & = & t|_\pi
   \end{eqnarray*}
 \end{definition}
 
@@ -406,6 +406,17 @@ that substitutions are undefined is a somewhat tedious necessity.  Each lemma is
 with an example, before its proof.
 
 \begin{lemma}
+  If $t'$ is closed, then $[t'/x]t$ is defined.
+\end{lemma}
+\noindent\textit{Example.} $[\lam{x}{x}/x]\lam{y}{x\ y}$ is defined and equals
+$\lam{y}{(\lam{x}{x})\ y}$.
+
+\begin{proof}
+  As $t'$ is closed, the condition in Equation 4 of Figure~\ref{fig:subst} can never
+  be violated, and hence the substitution is defined.
+\end{proof}
+
+\begin{lemma}
 \label{lem:substvargone}
   Suppose that $x\not\in\textit{FV}(t_1)$, and $[t_1/x]t_2$ is defined.  Then
   $x\not\in\textit{FV}([t_1/x]t_2)$.
@@ -532,7 +543,7 @@ single-step $\beta$-reduction, the relation is denoted $\curva_\beta$.
 You may recall that set theoretically, a relation is just a set of
 ordered pairs, and we may equivalently write $(t,t')\in\curva$ or $t
 \curva t'$ to indicate that $t$ $\beta$-reduces to $t'$.  There are
-several ways to give the definition, and we will consider two.
+several ways to give the definition.
 First, we can define the $\beta$-reduction relation using a set of inference rules\index{inference rule}.
 Such rules are of the form
 \[
@@ -559,7 +570,17 @@ $\beta$ rule, where we require that $[t'/x]t$ is defined
 in order to use the rule for inferences in a derivation.  The other
 three rules express the idea that a reduction can take place anywhere
 in a term.  Figure~\ref{fig:betarex} gives some example derivations.
-
+For some other examples:
+\begin{itemize}
+\item The term $(\lam{x}{x\ x})\ y$ single-step $\beta$-reduces to $y\ y$,
+  using just the $\beta$ axiom.  This is because substituting $y$ for $x$
+  in the body $x\ x$ of the $\lambda$-abstraction results in $y\ y$.
+\item On the other hand, the term $(\lam{x}{\lam{y}{x}})\ y$ does not
+  $\beta$-reduce, because the substitution $[x/y]\lam{y}{x}$, according
+  to our definition of substitution, is undefined: replacing $x$ with $y$ in
+  $\lam{y}{x}$ would result in variable capture.
+  \end{itemize}
+  
 \begin{definition}[Single-step $\beta$-reduction (rules)]
 \label{def:beta}
 The relation $\curva_\beta$ is the set consisting of exactly those
@@ -645,61 +666,6 @@ a set a (binary) relation on $A$.\index{binary relation on a set}
   Hence, $\leadsto_\beta$ is nondeterministic.
 \end{proof}
 
-\subsection{Examples}
-\label{sec:betaex}
-
-\begin{enumerate}
-  \item $(\lam{x}{x\ x})\ \lam{y}{y}$ reduces to
-    $(\lam{y}{y})\ \lam{y}{y}$.  For this, the meta-variables of
-    Definition~\ref{def:betactxt} are instantiated thus:
-    \begin{itemize}
-    \item $x$ is instantiated with $x$,
-    \item $t$ with $x\ x$,
-    \item $t'$ with $\lam{y}{y}$
-    \item $t''$ with $q$ (the special context variable)
-    \end{itemize}
-
-\item $\lam{x}{(\lam{y}{y})\ x}$ reduces to $\lam{x}{x}$.  Here the instantiations for Definition~\ref{def:betactxt} are:
-    \begin{itemize}
-    \item $x$ is instantiated with $y$,
-    \item $t$ with $y$,
-    \item $t'$ with $x$
-    \item $t''$ with $\lam{x}{q}$.
-    \end{itemize}
-
-    Notice that here we really need the idea of grafting, because our
-    redex contains $x$ free, which is bound in $t''$.  We want to
-    allow reduction of redexes that contain variables bound outside
-    the redex, and so we use grafting to specify that the $x$ in the
-    redex may be bound in $t''$.  If we used substitution instead of
-    grafting, this reduction would not be allowed by
-    Definition~\ref{def:betactxt}, because $[(\lam{y}{y})\ x/q]\lam{x}{q}$
-    is undefined (as the $x$ in $(\lam{y}{y})\ x$ would be captured
-    pushing the substitution into $\lam{x}{q}$).
-
-  \item $(\lam{x}{x\ x})\ \lam{x}{x\ x}$ reduces to that very same term.  The instantiations for Definition~\ref{def:betactxt} are:
-    
-    \begin{itemize}
-    \item $x$ is instantiated with $x$,
-    \item $t$ with $x\ x$,
-    \item $t'$ with $\lam{x}{x\ x}$
-    \item $t''$ with $q$.
-    \end{itemize}
-
-    We calculate the substitution $[t'/x]t$ as follows (referencing clause numbers from Figure~\ref{fig:subst}):
-    \[
-    \begin{array}{ll}
-      \underline{[\lam{x}{x\ x} / x](x\ x)} & =_3 \\
-      (\underline{[\lam{x}{x\ x} / x]x})\ [\lam{x}{x\ x} / x]x & =_1 \\
-      (\lam{x}{x\ x})\ \underline{[\lam{x}{x\ x} / x]x} & =_1 \\
-      (\lam{x}{x\ x})\ \lam{x}{x\ x} & \ 
-    \end{array}
-    \]
-    \noindent This is an important basic example, because it shows
-    that terms can reduce to themselves, and hence can give rise to
-    infinite reductions (to be defined just below).
-    \end{enumerate}
-
 \subsection{An alternative definition using contexts}
 
 Another way to define the same $\curva_\beta$ relation is with
@@ -757,6 +723,61 @@ instead of substitution is to allow contraction of redexes that
 contain free variables that are bound in $t_1$.  We will discuss this
 point further in the examples next.
 
+\subsubsection{Examples}
+\label{sec:betaex}
+
+\begin{enumerate}
+  \item $(\lam{x}{x\ x})\ \lam{y}{y}$ reduces to
+    $(\lam{y}{y})\ \lam{y}{y}$.  For this, the meta-variables of
+    Definition~\ref{def:betactxt} are instantiated thus:
+    \begin{itemize}
+    \item $x$ is instantiated with $x$,
+    \item $t$ with $x\ x$,
+    \item $t'$ with $\lam{y}{y}$
+    \item $t''$ with $q$ (the special context variable)
+    \end{itemize}
+
+\item $\lam{x}{(\lam{y}{y})\ x}$ reduces to $\lam{x}{x}$.  Here the instantiations for Definition~\ref{def:betactxt} are:
+    \begin{itemize}
+    \item $x$ is instantiated with $y$,
+    \item $t$ with $y$,
+    \item $t'$ with $x$
+    \item $t''$ with $\lam{x}{q}$.
+    \end{itemize}
+
+    Notice that here we really need the idea of grafting, because our
+    redex contains $x$ free, which is bound in $t''$.  We want to
+    allow reduction of redexes that contain variables bound outside
+    the redex, and so we use grafting to specify that the $x$ in the
+    redex may be bound in $t''$.  If we used substitution instead of
+    grafting, this reduction would not be allowed by
+    Definition~\ref{def:betactxt}, because $[(\lam{y}{y})\ x/q]\lam{x}{q}$
+    is undefined (as the $x$ in $(\lam{y}{y})\ x$ would be captured
+    pushing the substitution into $\lam{x}{q}$).
+
+  \item $(\lam{x}{x\ x})\ \lam{x}{x\ x}$ reduces to that very same term.  The instantiations for Definition~\ref{def:betactxt} are:
+    
+    \begin{itemize}
+    \item $x$ is instantiated with $x$,
+    \item $t$ with $x\ x$,
+    \item $t'$ with $\lam{x}{x\ x}$
+    \item $t''$ with $q$.
+    \end{itemize}
+
+    We calculate the substitution $[t'/x]t$ as follows (referencing clause numbers from Figure~\ref{fig:subst}):
+    \[
+    \begin{array}{ll}
+      \underline{[\lam{x}{x\ x} / x](x\ x)} & =_3 \\
+      (\underline{[\lam{x}{x\ x} / x]x})\ [\lam{x}{x\ x} / x]x & =_1 \\
+      (\lam{x}{x\ x})\ \underline{[\lam{x}{x\ x} / x]x} & =_1 \\
+      (\lam{x}{x\ x})\ \lam{x}{x\ x} & \ 
+    \end{array}
+    \]
+    \noindent This is an important basic example, because it shows
+    that terms can reduce to themselves, and hence can give rise to
+    infinite reductions (to be defined just below).
+    \end{enumerate}
+
 \subsection{One more alternative: replacement at a position}
 
 Yet one further alternative definition of single-step $\beta$-reduction
@@ -806,12 +827,13 @@ Such an operator takes a relation $R$ and produces some new relation (let us
 call it $R'$) such that $R\subseteq R'$ and $R'$ satisfies some desired property.
 We will generally define closure operators using rules.
 
-An important example in our setting is the \textbf{compatible closure}
-$\curva_R$ of $R$. \index{compatible closure} The rules for this are
+An important example in our setting is the \textbf{compatible closure},
+which we will denote
+$\Tau[R]$, of $R$. \index{compatible closure} The rules for this are
 given in Figure~\ref{fig:compcl}.  Given any relation $R$ on terms,
-$\curva_R$ is also a relation on terms, which contains $R$; i.e., if
+$\Tau[R]$ is also a relation on terms, which contains $R$; i.e., if
 two terms are related by $R$, then thanks to the first rule of
-Figure~\ref{fig:compcl}, they are also related by $\curva_R$.  We may
+Figure~\ref{fig:compcl}, they are also related by $\Tau[R]$.  We may
 call this the inclusion rule for the compatible closure. \index{inclusion rule!compatible closure}
 The property it satisfies is that is closed under the syntactic constructs
 of lambda calculus, in the sense expressed by the second, third, and
@@ -821,10 +843,10 @@ fourth rules of Figure~\ref{fig:compcl}.
 \begin{figure}
   \[
   \begin{array}{lllllll}
-\infer{t \curva_R t'}{t\ R\ t' } & \ &
-\infer{\lam{x}{t}\ \curva_R\ \lam{x}{t'}}{t\ \curva_R\ t'} & \ &
-\infer{t_1\ t_2\ \curva_R\ t_1'\ t_2}{t_1\ \curva_R\ t_1'} &\ &
-\infer{t_1\ t_2\ \curva_R\ t_1\ t_2'}{t_2\ \curva_R\ t_2'}
+\infer{t\ \Tau[R]\ t'}{t\ R\ t' } & \ &
+\infer{\lam{x}{t}\ \Tau[R]\ \lam{x}{t'}}{t\ \Tau[R]\ t'} & \ &
+\infer{t_1\ t_2\ \Tau[R]\ t_1'\ t_2}{t_1\ \Tau[R]\ t_1'} &\ &
+\infer{t_1\ t_2\ \Tau[R]\ t_1\ t_2'}{t_2\ \Tau[R]\ t_2'}
   \end{array}
   \]
   \caption{Definition of compatible closure of $R$.}
@@ -920,46 +942,46 @@ of the closure operators above.
 
 \begin{lemma}[compatible closure preserves symmetry]
 \label{lem:compclsymm}
-  If $R$ is symmetric, then $\leadsto_R$ is also.
+  If $R$ is symmetric, then $\Tau[R]$ is also.
 \end{lemma}
 \begin{proof}
-  Given symmetric $R$, assume $t \leadsto_R t'$ and show $t' \leadsto_R t$.
-  The proof is by induction on the assumed derivation of $t \leadsto_R t'$ (using the rules of Figure~\ref{fig:compcl}).
+  Given symmetric $R$, assume $t \Tau[R] t'$ and show $t' \Tau[R] t$.
+  The proof is by induction on the assumed derivation of $t \Tau[R] t'$ (using the rules of Figure~\ref{fig:compcl}).
 
   \case{ }
   \[
-  \infer{t \curva_R t'}{t\ R\ t' }
+  \infer{t \Tau[R] t'}{t\ R\ t' }
   \]
   \noindent We construct this derivation, where $t'\ R\ t$ is deduced by symmetry of $R$:
   \[
-  \infer{t' \curva_R t}{\infer{t'\ R\ t}{t\ R\ t'}}
+  \infer{t' \Tau[R] t}{\infer{t'\ R\ t}{t\ R\ t'}}
   \]
 
   \case{ }
   \[
-  \infer{\lam{x}{t}\ \curva_R\ \lam{x}{t'}}{t\ \curva_R\ t'}
+  \infer{\lam{x}{t}\ \Tau[R]\ \lam{x}{t'}}{t\ \Tau[R]\ t'}
   \]
   \noindent We construct:
   \[
-  \infer{\lam{x}{t'}\ \curva_R\ \lam{x}{t}}{\infer[\textit{IH}]{t'\ \curva_R\ t}{t\ \curva_R\ t'}}
+  \infer{\lam{x}{t'}\ \Tau[R]\ \lam{x}{t}}{\infer[\textit{IH}]{t'\ \Tau[R]\ t}{t\ \Tau[R]\ t'}}
   \]
 
   \case{ }
   \[
-  \infer{t_1\ t_2\ \curva_R\ t_1'\ t_2}{t_1\ \curva_R\ t_1'}
+  \infer{t_1\ t_2\ \Tau[R]\ t_1'\ t_2}{t_1\ \Tau[R]\ t_1'}
   \]
   \noindent We construct:
   \[
-  \infer{t_1'\ t_2\ \curva_R\ t_1\ t_2}{\infer[\textit{IH}]{t_1'\ \curva_R\ t_1}{t_1\ \curva_R\ t_1'}}
+  \infer{t_1'\ t_2\ \Tau[R]\ t_1\ t_2}{\infer[\textit{IH}]{t_1'\ \Tau[R]\ t_1}{t_1\ \Tau[R]\ t_1'}}
   \]
 
   \case{ }
   \[
-  \infer{t_1\ t_2\ \curva_R\ t_1\ t_2'}{t_2\ \curva_R\ t_2'}
+  \infer{t_1\ t_2\ \Tau[R]\ t_1\ t_2'}{t_2\ \Tau[R]\ t_2'}
   \]
   \noindent We construct:
   \[
-  \infer{t_1\ t_2'\ \curva_R\ t_1\ t_2}{\infer[\textit{IH}]{t_2'\ \curva_R\ t_2}{t_2\ \curva_R\ t_2'}}
+  \infer{t_1\ t_2'\ \Tau[R]\ t_1\ t_2}{\infer[\textit{IH}]{t_2'\ \Tau[R]\ t_2}{t_2\ \Tau[R]\ t_2'}}
   \]
   
   \end{proof}
@@ -999,65 +1021,65 @@ of the closure operators above.
 \begin{lemma}[reflexive-transitive closure is compatible with $\lambda$-abstraction]
 \label{lem:rtclam}
 Suppose $R$ is a relation on terms.  
-If $t\ \leadsto_R^*\ t'$, then $\lam{x}{t}\ \leadsto_R^*\ \lam{x}{t'}$.
+If $t\ \Tau[R]^*\ t'$, then $\lam{x}{t}\ \Tau[R]^*\ \lam{x}{t'}$.
 \end{lemma}
 \begin{proof}
 We proceed by induction on the assumed derivation, again following the three rules of Figure~\ref{fig:rtcl}.
 
   \case{ }
   \[
-  \infer{t \leadsto_R^* t'}{t \leadsto_R t'}
+  \infer{t \Tau[R]^* t'}{t \Tau[R] t'}
   \]
   \noindent We construct
   \[
-  \infer{\lam{x}{t} \leadsto_R^* \lam{x}{t'}}
-        {\infer{\lam{x}{t} \leadsto_R \lam{x}{t'}}
-               {t \leadsto_R t'}}
+  \infer{\lam{x}{t} \Tau[R]^* \lam{x}{t'}}
+        {\infer{\lam{x}{t} \Tau[R] \lam{x}{t'}}
+               {t \Tau[R] t'}}
   \]
 
   \case{ }
   \[
-  \infer{t \leadsto_R^* t}{\ }
+  \infer{t \Tau[R]^* t}{\ }
   \]
   \noindent This case forces $t' = t$.  We construct the following, again applying the reflexivity rule:
   \[
-  \infer{\lam{x}{t} \leadsto_R^* \lam{x}{t}}{\ }
+  \infer{\lam{x}{t} \Tau[R]^* \lam{x}{t}}{\ }
   \]
 
   \case{ }
   \[
-  \infer{t \leadsto_R^* t'}{t \leadsto_R^* t'' & t'' \leadsto_R^* t'}
+  \infer{t \Tau[R]^* t'}{t \Tau[R]^* t'' & t'' \Tau[R]^* t'}
   \]
   \noindent We construct the following, applying the transitivity rule:
   \[
-  \infer{\lam{x}{t} \leadsto_R^* \lam{x}{t'}}{\infer[\textit{IH}]{\lam{x}{t} \leadsto_R^* \lam{x}{t''}}{t \leadsto_R^* t''}
-                                             & \infer[\textit{IH}]{\lam{x}{t''} \leadsto_R^* \lam{x}{t'}}{t'' \leadsto_R^* t'}}
+  \infer{\lam{x}{t} \Tau[R]^* \lam{x}{t'}}{\infer[\textit{IH}]{\lam{x}{t} \Tau[R]^* \lam{x}{t''}}{t \Tau[R]^* t''}
+                                             & \infer[\textit{IH}]{\lam{x}{t''} \Tau[R]^* \lam{x}{t'}}{t'' \Tau[R]^* t'}}
   \]
 
 \end{proof}
 
 \begin{lemma}[reflexive-transitive closure preserves compatibility]
 \label{lem:comprtc}
-  Suppose $R$ is a relation on terms, and consider $\leadsto_R^*$.
-  Then the relations $\leadsto_R^*$  and its compatible closure $\leadsto_{\leadsto_R^*}$ are the same.
+  Suppose $R$ is a relation on terms, and consider $\Tau[R]^*$.
+  Then the relations $\Tau[R]^*$  and its compatible closure $\Tau[\Tau[R]^*]$ are the same.
 \end{lemma}
 \begin{proof}
-  Since $\leadsto_R^*\ \subseteq\ \leadsto_{\leadsto_R^*}$ by the inclusion rule
-  of Figure~\ref{fig:compcl}, it suffices to show $\leadsto_{\leadsto_R^*}\ \subseteq\ \leadsto_R^*$.
-  So assume $t\ \leadsto_{\leadsto_R^*}\ t'$ and show $t \leadsto_R^* t'$.  The proof
+  Since $\Tau[R]^*\ \subseteq\ \Tau[\Tau[R]^*]$ by the inclusion rule
+  of Figure~\ref{fig:compcl}, it suffices to show $\Tau[\Tau[R]^*]\ \subseteq\ \Tau[R]^*$.
+  So assume $t\ \Tau[\Tau[R]^*]\ t'$ and show $t \Tau[R]^* t'$.  The proof
   is by induction on the assumed derivation (with the rules of Figure~\ref{fig:compcl}).
 
   \case{ } 
   \[
-  \infer{t\ \leadsto_{\leadsto_R^*}\ t'}{t \leadsto_R^* t'}
+  \infer{t\ \Tau[\Tau[R]^*]\ t'}{t \Tau[R]^* t'}
   \]
-  \noindent The desired conclusion for this inclusion inference is its premise: $t \leadsto_R^* t'$.
+  \noindent The desired conclusion for this inclusion inference is its premise: $t \Tau[R]^* t'$.
 
   \case{ }
   \[
-  \infer{\lam{x}{t}\ \leadsto_{\leadsto_R^*}\ \lam{x}{t'}}{t\ \leadsto_{\leadsto_R^*}\ t'}
+  \infer{\lam{x}{t}\ \Tau[\Tau[R]^*]\ \lam{x}{t'}}{t\ \Tau[\Tau[R]^*]\ t'}
   \]
-  \noindent By the induction hypothesis, we have $t\ \leadsto_R^*\ t'$.  The result
+  \noindent By the induction hypothesis, we have $t\ \Tau[R]^*\ t'$.  The result
   then follows by Lemma~\ref{lem:rtclam}. 
 
 
@@ -1106,14 +1128,15 @@ variable of $t$ or which would itself be captured when replacing $x$
 with it.
 
 Next we apply the compatible closure (Figure~\ref{fig:compcl}), to get
-$\curva_\alpha$.  This allows us to perform such a renaming anywhere
-we want in a term.  Finally, we take the reflexive transitive closure,
-so that we can perform any finite sequence of renamings.  This gives
-us the final definition:
+$\curva_\alpha$.  So $\curva_\alpha$ is defined to be $\Tau[\alpha]$.
+This relation allows us to perform such a renaming anywhere we want in
+a term.  Finally, we take the reflexive transitive closure, so that we
+can perform any finite sequence of renamings.  This gives us the final
+definition:
 
 \begin{definition}[$\alpha$-equivalence]
 \label{def:alpha}
-  The relation $=_\alpha$, called $\alpha$-equivalence, is $(\leadsto_\alpha)^*$.
+  The relation $=_\alpha$, called $\alpha$-equivalence, is $\Tau[\alpha]^*$.
   \end{definition}
 
 \subsection{Examples}
@@ -1125,8 +1148,8 @@ us the final definition:
   \begin{itemize}
   \item $\lam{x}{\lam{y}{z\ x}} \curva_\alpha \lam{x}{\lam{w}{z\ x}}$, proved with this derivation (using the rules of Figure~\ref{fig:compcl} and Figure~\ref{fig:barealpha}):
     \[
-    \infer{\lam{x}{\lam{y}{z\ x}} \curva_\alpha \lam{x}{\lam{w}{z\ x}}}
-          {\infer{\lam{y}{z\ x} \curva_\alpha \lam{w}{[w/y](z\ x)}}{\infer{\lam{y}{z\ x} \ \alpha \ \lam{w}{[w/y](z\ x)} }{\ }}}
+    \infer{\lam{x}{\lam{y}{z\ x}} \Tau[\alpha] \lam{x}{\lam{w}{z\ x}}}
+          {\infer{\lam{y}{z\ x} \Tau[\alpha] \lam{w}{[w/y](z\ x)}}{\infer{\lam{y}{z\ x} \ \alpha \ \lam{w}{[w/y](z\ x)} }{\ }}}
           \]
     
     \item $\lam{x}{\lam{w}{z\ x}} \curva_\alpha \lam{y}{\lam{w}{z\ y}}$.

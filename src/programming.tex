@@ -19,10 +19,10 @@ arguments.  By behavior, I mean the term's $\beta$-reductions.
 \noindent This term really does behave like the mathematical
 (set-theoretic, let us say) identity function, since if we apply
 \textit{id} to anything, we just get back that same value.\index{identity \textit{id}}  We have
-{\large
+
 \[
 \textit{id}\ t \ \ \betaa^* \ \ t
-\]}
+\]
 
 \paradef{0}{Self-application operator.}
 \[
@@ -37,7 +37,7 @@ We also have
 \[
 \begin{array}{ll}
   \underline{\delta}\ \delta & = \\
-  \underline{(\lam{x}{x\ x})\ \delta} & = \\
+  \underline{(\lam{x}{x\ x})\ \delta} & \betaa \\
   \delta\ \delta &\
 \end{array}
 \]
@@ -53,7 +53,20 @@ function composition and write $f \circ g$ for $\textit{compose}\ f\ g$.
 Here are a few examples using \textit{compose}:\index{composition \textit{compose} (or $\circ$)}
 \begin{itemize}
 \item $\textit{id} \circ \textit{id} \ \ \betaa^*\ \ \textit{id}$
-  \item $\textit{delta}\circ \textit{delta} \ \ \betaa^*\ \ \lam{y}{y\ y\ (y\ y)}$
+\item $\delta\circ \delta \ \ \betaa^*\ \ \lam{x}{x\ x\ (x\ x)}$:
+\[
+\begin{array}{ll}
+  \underline{\delta\circ \delta} & = \\
+  \underline{\textit{compose}}\ \delta\ \delta & = \\
+  \underline{(\lam{f}{\lam{g}{\lam{x}{f\ (g\ x)}}})\ \delta}\ \delta & \betaa \\
+  \underline{(\lam{g}{\lam{x}{\delta\ (g\ x)}})\ \delta} & \betaa \\
+  \lam{x}{\delta\ (\delta\ x)} & \betaa \\
+  \lam{x}{\delta\ \underline{(\delta\ x)}} & \betaa \\
+  \lam{x}{\underline{\delta\ (x\ x)}} & \betaa \\
+  \lam{x}{(x\ x)\ (x\ x)} & \ 
+\end{array}
+\]
+  
 \end{itemize}
 
 \paradef{.5}{Application operator.}
