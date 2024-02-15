@@ -87,60 +87,29 @@ as lambda terms.  Here we see the first, which is Church's own encoding.\index{C
 Any lambda encoding must represent data as lambda terms implementing
 some behavioral interface.  That is, data are defined by what they do,
 not what they are.  The idea of the Church encoding more specifically
-is to define numbers as their own iteration functions.  To explain
-in more detail, let us define the notion of iteration of a function:
-\[
-\begin{array}{lll}
-  \textit{Iter}_0\ f & = & \textit{id} \\ 
-  \textit{Iter}_{n+1}\ f & = & f \circ \textit{Iter}_n\ f
-\end{array}
-\]
-\noindent This definition is by recursion on $n\in\mathbb{N}$, and is
-defining a function from terms $f$ to terms.  (So the definition is a
-recursive definition, in our meta-language, of a term-to-term
-function.)  It states that the $0$-fold iteration of a function $f$ is
-just the identity, and that the $(n+1)$-fold iteration of $f$ is just
-$f$ composed with the $n$-fold iteration of $f$.  In other words,
-$\textit{Iter}_n\ f$ is
-\[
-\underbrace{f \circ \cdots \circ f}_{n}
-\]
-\noindent where we understand this to be \textit{id} if $n$ is $0$.
-
-Instead of thinking of $\textit{Iter}_n$ as a meta-language function,
-let us instead think of it as just a single term, by moving the $\lambda\ f$ to
-the right-hand side of the defining equations:
-\[
-\begin{array}{lll}
-  \textit{Iter}_n & = & \lam{f}{\textit{id}} \\ 
-  \textit{Iter}_{n+1} & = & \lam{f}{f \circ (\textit{Iter}_n\ f)}
-\end{array}
-\]
-\noindent Now the beauty of the Church encoding is to represent $n$
-to be $\textit{Iter}_n$.  Let us write $\rep{n}$ to mean the lambda
+is to define numbers as their own iteration functions: functions which
+take in another function $f$ and starting point $x$, and repeatedly
+call $f$ starting with $x$.  Let us write $\rep{n}$ to mean the lambda
 term representing $n\in\mathbb{N}$.  Then the Church encoding defines:
 
 \[
 \begin{array}{lll}
-  \rep{0} & = & \lam{f}{\textit{id}} \\ 
-  \rep{n+1} & = & \lam{f}{f \circ (\rep{n}\ f)}
+  \rep{n} & = & \lam{f}{\lam{x}{\underbrace{f \ (\cdots\  (f}_{n}\ x))}}
 \end{array}
 \]
-\noindent For some concrete examples, and reducing the redexes that arise from applying $\rep{n}$ to $f$ in the
-definition of $\rep{n+1}$, we take:
+\noindent So we have these concrete examples:
 
 \[
 \begin{array}{lll}
-  0 & := & \lam{f}{\lam{a}{a}} \\
-  1 & := & \lam{f}{\lam{a}{f\ a}} \\
-  2 & := & \lam{f}{\lam{a}{f\ (f\ a)}} \\
-  \multicolumn{3}{l}{\cdots} \\
-  \rep{n+1} & := & \lam{f}{\lam{a}{\underbrace{f \circ \cdots \circ f}_{n+1}}} \\
+  0 & := & \lam{f}{\lam{x}{x}} \\
+  1 & := & \lam{f}{\lam{x}{f\ x}} \\
+  2 & := & \lam{f}{\lam{a}{f\ (f\ x)}} \\
+  3 & := & \lam{f}{\lam{a}{f\ (f\ (f\ x))}} \\  
   \multicolumn{3}{l}{\cdots}
 \end{array}
 \]
 
-\noindent We may observe that $1$ and $\textit{app}$ are $\alpha$-equivalent
+\noindent In passing, we may observe that $1$ and $\textit{app}$ are $\alpha$-equivalent
 terms.  When representing data as lambda terms, such coincidences
 sometimes occur.
 
@@ -160,31 +129,18 @@ Church-encoded naturals:
 \[
 \begin{array}{ll}
   \underline{\textit{succ}}\ 2 & = \\
-  (\lam{n}{\lam{f}{\lam{x}{f\ (n\ f\ x)}}})\ 2 & = \\
+  \underline{(\lam{n}{\lam{f}{\lam{x}{f\ (n\ f\ x)}}})\ 2} & \leadsto \\
   \lam{f}{\lam{x}{f\ (\underline{2}\ f\ x)}} & = \\
-  \lam{f}{\lam{x}{f\ (\underline{\lam{f}{\lam{x}{f\ (f\ x)}}\ f}\ x)}} & \leadsto \\
+  \lam{f}{\lam{x}{f\ (\underline{\lam{f}{(\lam{x}{f\ (f\ x)})}\ f}\ x)}} & \leadsto \\
   \lam{f}{\lam{x}{f\ (\underline{(\lam{x}{f\ (f\ x)})\ x})}} & \leadsto \\
   \lam{f}{\lam{x}{f\ (f\ (f\ x))}} & = \\
   3
-\end{array}{ll}
+\end{array}
 \]
-More generally, if $n\in\mathbb{N}$, then $\textit{succ}\ \rep{n}$ reduces to
-\[
-\lam{f}{\lam{x}{f\ (\rep{n}\ f\ x)}}
-\]
-\noindent As we saw above, the result of applying $\rep{n}$ to $f$ is the $n$-fold composition of $f$.  So this
-expression is equal to 
-\[
-\lam{f}{\lam{x}{f\ (\underbrace{f \cdots (f }_{n}\ x))}}
-\]
-\noindent And then we notice that we have just tacked an extra $f$ on to the left, so we can write this as:
-\[
-\lam{f}{\lam{x}{\underbrace{f \cdots (f }_{n+1}\ x)}}
-\]
-\noindent And this is equal to $\rep{n+1}$, as desired.
+More generally, if $n\in\mathbb{N}$, then $\textit{succ}\ \rep{n}$ reduces to $\rep{n+1}$.
 
 \paradef{.5}{Addition.}  To compute $\rep{m+n}$ from $\rep{m}$ and $\rep{n}$, the idea is similar to that for successor, except
-that here we wish to add not just one $f$ to the left of $\underbrace{f \cdots (f }_{n}\ x)$, but $m$ applications of $f$.  For
+that here we wish to add not just one $f$ to the left of $\underbrace{f \ \cdots\  (f }_{n}\ x)$, but $m$ applications of $f$.  For
 then we would have $m+n$ applications of $f$ as desired for $\rep{m+n}$.  And fortunately, $\rep{m}$ itself gives us the power
 to apply $f$ $m$ times to some starting value $Q$, by writing $m\ f\ Q$.  Here, we want $n\ f\ x$ for $Q$.  So the definition
 of addition is:
@@ -405,6 +361,11 @@ four steps of $\beta$-reduction, independent of the value of $n$.
 This is in contrast to the case with the Church encoding, where the
 number of steps was proportional to $n$.
 
+It is obvious from the encoding that the successor function \textit{succ} for Scott-encoded numbers should be:
+\[
+\textit{succ}\ := \ \lam{n}{\lam{f}{\lam{x}{f n}}}
+\]
+
 \section{The Y combinator}
 \label{sec:y}
 
@@ -605,7 +566,7 @@ easier consideration below:
   \underline{(\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 1} & \leadsto \\
   \textit{succ}\ \underline{(U\ U\ 1\ 2)}) & \leadsto^* \\
   \textit{succ}\ (\textit{succ}\ \underline{(U\ U\ 0\ 2)}) & \leadsto^* \\
-  \textit{succ}\ (\textit{succ}\ 2) & = \\
+  \textit{succ}\ (\textit{succ}\ 2) & \leadsto^* \\
   4 &\ 
   \end{array}
 \]
@@ -613,6 +574,44 @@ easier consideration below:
 $\textit{succ}\ (U\ U\ \rep{n}\ m)$.  So we peel successors off the
 first argument until we reach $0$, and then we return the second
 argument (i.e., $m$).
+
+\section{A direct approach to recursion on Scott-encoded numbers}
+
+Instead of using the $Y$ combinator, it is possible to recurse
+directly on Scott-encoded numbers.  A Scott-encoded number takes in a
+function $f$ to call with the predecessor if the number is non-zero,
+and a value $x$ to return if the number is zero.  The key idea,
+attributed by Lepigre and Rafalli to Michel Parigot, is to have $f$
+and $x$ themselves expect to be called with $f$ and $x$
+again~\cite{lepigre:rafalli19}.  This enables in particular $f$ to
+recurse.
+
+Here is a definition of addition for the Scott encoding,
+using this idea. I have abstracted out $f$ and $x$ for this
+case, to help make clear where there is a self-application
+happening.  The base case $x$ depends, in the definition of addition,
+on the second addend, so we need to write $x\ m$ in the definition
+of \textit{add}, instead of just $x$.
+\begin{eqnarray*}
+f & := & \lam{p}{\lam{s}{\lam{z}{\textit{succ}\ (p\ s\ z\ s\ z)}}} \\
+x & := & \ \lam{m}{\lam{s}{\lam{z}{m}}} \\
+\textit{add} & := & \lam{n}{\lam{m}{n\ f\ (x\ m)\ f\ (x\ m)}}
+\end{eqnarray*}
+
+\noindent Let us see this definition in action:
+
+\[
+\begin{array}{ll}
+  \underline{\textit{add}\ 2\ 2} & \leadsto^2 \\
+  \underline{2\ f}\ (x\ 2)\ f\ (x\ 2) & \leadsto \\
+  \underline{f\ 1\ f\ (x\ 2)} & \leadsto^3 \\
+  \textit{succ}\ \underline{(1\ f\ (x\ 2)\ f\ (x\ 2))} & \leadsto^4 \\
+  \textit{succ}\ (\textit{succ}\ \underline{(0\ f\ (x\ 2)\ f\ (x\ 2))}) & \leadsto \\
+  \textit{succ}\ (\textit{succ}\ \underline{((x\ 2)\ f\ (x\ 2))}) & \leadsto^3 \\
+  \underline{\textit{succ}\ (\textit{succ}\ 2)} & \leadsto^* \\    
+  4
+\end{array}
+  \]
 
 \section{Exercises}
 

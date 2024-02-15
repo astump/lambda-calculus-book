@@ -523,14 +523,14 @@ to an argument.  So as a tree, it looks like:
 $\beta$-axiom says that such a term reduces to $[t'/x]t$; i.e., the
 result of substituting $t'$ for $x$ in
 $t$, as discussed in Section~\ref{sec:subst} above.  This is only
-allowed, however, if the substitution is defined.  Operationally, this
+allowed, however, if the substitution is defined.  Terms of the
+form $(\lam{x}{t})\ t'$ are called
+$\beta$-redexes (for ``$\beta$-reducible
+expressions'')\index{$\beta$-redex}.  Operationally, this
 reduction of the $\beta$-redex to the result of a substitution is
 called \emph{contracting} the redex; the result of substitution is called
 the \emph{contractum}
-\index{$\beta$-redex!contracting}\index{contractum}.  Terms of the
-form $(\lam{x}{t})\ t'$, with $[t'/x]t$ defined, are called
-$\beta$-redexes (for ``$\beta$-reducible
-expressions'')\index{$\beta$-redex}.  Note that the requirement that
+\index{$\beta$-redex!contracting}\index{contractum}.    Note that the requirement that
 the substitution is defined is a particularity of the approach we take
 in this book.
 
@@ -591,9 +591,9 @@ we say that $t$ $\beta$-reduces to $t'$.
 \end{definition}
 
 \begin{definition}[$\beta$-redex]
-  Any term of the form $(\lam{x}{t})\ t'$ is called a $\beta$-redex,
-  as long as $[t'/x]t$ is defined.  Otherwise, we call such a term
-  a \emph{stuck} $\beta$-redex.\index{$\beta$-redex!stuck}\index{$\beta$-redex}
+  Any term of the form $(\lam{x}{t})\ t'$ is called a $\beta$-redex.
+  If $[t'/x]t$ is defined, let us call it a live $\beta$-redex.  Otherwise, let us call it
+  a \emph{stuck} $\beta$-redex.\index{$\beta$-redex!stuck}\index{$\beta$-redex}\index{$\beta$-redex!live}
   \end{definition}
 
 \begin{definition}[nested redex]
@@ -1028,34 +1028,44 @@ We proceed by induction on the assumed derivation, again following the three rul
 
   \case{ }
   \[
-  \infer{t \Tau[R]^* t'}{t \Tau[R] t'}
+  \infer{t\ \Tau[R]^*\ t'}{t\ \Tau[R]\ t'}
   \]
   \noindent We construct
   \[
-  \infer{\lam{x}{t} \Tau[R]^* \lam{x}{t'}}
-        {\infer{\lam{x}{t} \Tau[R] \lam{x}{t'}}
-               {t \Tau[R] t'}}
+  \infer{\lam{x}{t}\ \Tau[R]^*\ \lam{x}{t'}}
+        {\infer{\lam{x}{t}\ \Tau[R]\ \lam{x}{t'}}
+               {t\ \Tau[R]\ t'}}
   \]
 
   \case{ }
   \[
-  \infer{t \Tau[R]^* t}{\ }
+  \infer{t\ \Tau[R]^*\ t}{\ }
   \]
   \noindent This case forces $t' = t$.  We construct the following, again applying the reflexivity rule:
   \[
-  \infer{\lam{x}{t} \Tau[R]^* \lam{x}{t}}{\ }
+  \infer{\lam{x}{t}\ \Tau[R]^*\ \lam{x}{t}}{\ }
   \]
 
   \case{ }
   \[
-  \infer{t \Tau[R]^* t'}{t \Tau[R]^* t'' & t'' \Tau[R]^* t'}
+  \infer{t\ \Tau[R]^*\ t'}{t\ \Tau[R]^*\ t'' & t''\ \Tau[R]^*\ t'}
   \]
   \noindent We construct the following, applying the transitivity rule:
   \[
-  \infer{\lam{x}{t} \Tau[R]^* \lam{x}{t'}}{\infer[\textit{IH}]{\lam{x}{t} \Tau[R]^* \lam{x}{t''}}{t \Tau[R]^* t''}
-                                             & \infer[\textit{IH}]{\lam{x}{t''} \Tau[R]^* \lam{x}{t'}}{t'' \Tau[R]^* t'}}
+  \infer{\lam{x}{t}\ \Tau[R]^*\ \lam{x}{t'}}{\infer[\textit{IH}]{\lam{x}{t}\ \Tau[R]^*\ \lam{x}{t''}}{t\ \Tau[R]^*\ t''}
+                                             & \infer[\textit{IH}]{\lam{x}{t''}\ \Tau[R]^*\ \lam{x}{t'}}{t''\ \Tau[R]^*\ t'}}
   \]
 
+\end{proof}
+
+\begin{lemma}[reflexive-transitive closure is compatible with application]
+\label{lem:rtcapp}
+Suppose $R$ is a relation on terms.  
+If $t_1\ \Tau[R]^*\ t_1'$, then $t_1\ t_2\ \Tau[R]^*\ t_1'\ t_2$.  Also,
+if $t_2\ \Tau[R]^*\ t_2'$, then $t_1\ t_2\ \Tau[R]^*\ t_1\ t_2'$.
+\end{lemma}
+\begin{proof}
+The proof is quite similar to that of Lemma~\ref{lem:rtclam}, so it is omitted.
 \end{proof}
 
 \begin{lemma}[reflexive-transitive closure preserves compatibility]
@@ -1066,14 +1076,14 @@ We proceed by induction on the assumed derivation, again following the three rul
 \begin{proof}
   Since $\Tau[R]^*\ \subseteq\ \Tau[\Tau[R]^*]$ by the inclusion rule
   of Figure~\ref{fig:compcl}, it suffices to show $\Tau[\Tau[R]^*]\ \subseteq\ \Tau[R]^*$.
-  So assume $t\ \Tau[\Tau[R]^*]\ t'$ and show $t \Tau[R]^* t'$.  The proof
+  So assume $t\ \Tau[\Tau[R]^*]\ t'$ and show $t\ \Tau[R]^*\ t'$.  The proof
   is by induction on the assumed derivation (with the rules of Figure~\ref{fig:compcl}).
 
   \case{ } 
   \[
-  \infer{t\ \Tau[\Tau[R]^*]\ t'}{t \Tau[R]^* t'}
+  \infer{t\ \Tau[\Tau[R]^*]\ t'}{t\ \Tau[R]^*\ t'}
   \]
-  \noindent The desired conclusion for this inclusion inference is its premise: $t \Tau[R]^* t'$.
+  \noindent The desired conclusion for this inclusion inference is its premise: $t\ \Tau[R]^*\ t'$.
 
   \case{ }
   \[
@@ -1082,6 +1092,18 @@ We proceed by induction on the assumed derivation, again following the three rul
   \noindent By the induction hypothesis, we have $t\ \Tau[R]^*\ t'$.  The result
   then follows by Lemma~\ref{lem:rtclam}. 
 
+  \case{ }
+  \[
+  \infer{t_1\ t_2\ \Tau[\Tau[R]^*]\ t_1'\ t_2}{t_1\ \Tau[\Tau[R]^*]\ t_1'}
+  \]
+  \noindent By the induction hypothesis, we have $t_1\ \Tau[R]^*\ t_1'$.  The result
+  then follows by Lemma~\ref{lem:rtcapp}. 
+
+  \case{ }
+  \[
+  \infer{t_1\ t_2\ \Tau[\Tau[R]^*]\ t_1\ t_2'}{t_2\ \Tau[\Tau[R]^*]\ t_2'}
+  \]
+  \noindent Similar to the previous case.
 
   \end{proof}
         
@@ -1100,7 +1122,7 @@ We proceed by induction on the assumed derivation, again following the three rul
 \label{fig:barealpha}
 \end{figure}
 
-The intention with $\lambda$-abstraction is that it introduces a
+A $\lambda$-abstraction introduces a
 variable with local scope, to refer to input arguments.  Terms that
 are the same except for choice of these local variables intuitively
 should be equivalent in some way.  In this section, we define this
@@ -1298,7 +1320,7 @@ renamings may be possible.
   A $\betaa$-reduction sequence (as in Definition~\ref{def:betars}) for this is
 \[
 \begin{array}{ll}
-  (\lam{x}{\underline{\lam{y}{x\ x}}})\ \lam{x}{y} \betaa \\
+  (\lam{x}{\underline{\lam{y}{x\ x}}})\ \lam{x}{y} & \betaa \\
   \lam{w}{\underline{(\lam{x}{y})\ \lam{x}{y}}} & \betaa \\
   \lam{w}{y} & \
 \end{array}
@@ -1308,7 +1330,7 @@ The following reduction sequence is different, because in the second line the fi
 $\lambda$-bound variable is $p$ instead of $w$:
 \[
 \begin{array}{ll}
-  (\lam{x}{\underline{\lam{y}{x\ x}}})\ \lam{x}{y} \betaa \\
+  (\lam{x}{\underline{\lam{y}{x\ x}}})\ \lam{x}{y} & \betaa \\
   \lam{p}{\underline{(\lam{x}{y})\ \lam{x}{y}}} & \betaa \\
   \lam{w}{y} & \
 \end{array}
