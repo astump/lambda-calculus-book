@@ -538,11 +538,11 @@ To give a formal definition of $\beta$-reduction, we will first define
 what it means to reduce a single $\beta$-redex, and then, in
 Section~\ref{sec:multibeta} below, define $\beta$-reduction with
 multiple steps.  In both cases, we define relations between terms.  For
-single-step $\beta$-reduction, the relation is denoted $\curva_\beta$.
+single-step $\beta$-reduction, the relation is denoted $\betar$.
 
 You may recall that set theoretically, a relation is just a set of
-ordered pairs, and we may equivalently write $(t,t')\in\curva$ or $t
-\curva t'$ to indicate that $t$ $\beta$-reduces to $t'$.  There are
+ordered pairs, and we may equivalently write $(t,t')\in\betar$ or $t
+\betar t'$ to indicate that $t$ $\beta$-reduces to $t'$.  There are
 several ways to give the definition.
 First, we can define the $\beta$-reduction relation using a set of inference rules\index{inference rule}.
 Such rules are of the form
@@ -583,10 +583,10 @@ For some other examples:
   
 \begin{definition}[Single-step $\beta$-reduction (rules)]
 \label{def:beta}
-The relation $\curva_\beta$ is the set consisting of exactly those
-pairs $(t,t')$ where $t \curva_\beta t'$ is derivable (via a finite derivation) using the
+The relation $\betar$ is the set consisting of exactly those
+pairs $(t,t')$ where $t \betar t'$ is derivable (via a finite derivation) using the
 rules of Figure~\ref{fig:betar}.  We write applications of the
-relation in infix notation (as in those rules).  If $t \curva_\beta t'$
+relation in infix notation (as in those rules).  If $t \betar t'$
 we say that $t$ $\beta$-reduces to $t'$.  
 \end{definition}
 
@@ -611,10 +611,10 @@ we say that $t$ $\beta$-reduces to $t'$.
 \begin{figure}
   \[
   \begin{array}{lllllll}
-\infer{(\lam{x}{t})\ t'\ \curva_\beta\ [t'/x]t}{\ } & \ &
-\infer{\lam{x}{t}\ \curva_\beta\ \lam{x}{t'}}{t\ \curva_\beta\ t'} & \ &
-\infer{t_1\ t_2\ \curva_\beta\ t_1'\ t_2}{t_1\ \curva_\beta\ t_1'} &\ &
-\infer{t_1\ t_2\ \curva_\beta\ t_1\ t_2'}{t_2\ \curva_\beta\ t_2'}
+\infer{(\lam{x}{t})\ t'\ \betar\ [t'/x]t}{\ } & \ &
+\infer{\lam{x}{t}\ \betar\ \lam{x}{t'}}{t\ \betar\ t'} & \ &
+\infer{t_1\ t_2\ \betar\ t_1'\ t_2}{t_1\ \betar\ t_1'} &\ &
+\infer{t_1\ t_2\ \betar\ t_1\ t_2'}{t_2\ \betar\ t_2'}
   \end{array}
   \]
   \caption{Inference rules defining the $\beta$-reduction relation.  It is required that the substitution in the leftmost rule be defined, in order to use the rule.}
@@ -668,7 +668,7 @@ a set a (binary) relation on $A$.\index{binary relation on a set}
 
 \subsection{An alternative definition using contexts}
 
-Another way to define the same $\curva_\beta$ relation is with
+Another way to define the same $\betar$ relation is with
 contexts.  Let us first introduce the concept of \emph{grafting},
 which is just substitution that does \underline{not} avoid
 capture\index{grafting}.  We will write $\langle t/x\rangle t'$ for
@@ -705,7 +705,7 @@ any requirements on $\textit{FV}(t')$.
 \begin{definition}[Single-step $\beta$-reduction (contexts)]
 \label{def:betactxt}
 The single-step $\beta$-reduction relation
-$\curva_\beta$ is alternatively defined to be the set of all ordered pairs with first component $\langle (\lam{x}{t})\ t' \rangle t''$
+$\betar$ is alternatively defined to be the set of all ordered pairs with first component $\langle (\lam{x}{t})\ t' \rangle t''$
   and second component $\langle [t'/x]t \rangle t''$, for some $x$, $t$, $t'$, and $t''$ (with $t''$ a context and $[t'/x]t$ defined).
 \end{definition}
 
@@ -809,7 +809,7 @@ Using replacement, we can give yet another definition for single-step $\beta$-re
 \begin{definition}[Single-step $\beta$-reduction (replacement at position)]
 \label{def:betapos}
 The single-step $\beta$-reduction relation
-$\curva_\beta$ is alternatively defined to be the set of all ordered pairs with first component $t''[(\lam{x}{t})\ t']_\pi$
+$\betar$ is alternatively defined to be the set of all ordered pairs with first component $t''[(\lam{x}{t})\ t']_\pi$
 and second component $t''[[t'/x]t]_\pi$, for some $x$, $t$, $t'$, $t''$, and $\pi$, where $\pi$ is a legal position of $t''$
 and $[t'/x]t$ defined.
 \end{definition}
@@ -854,9 +854,9 @@ fourth rules of Figure~\ref{fig:compcl}.
 \end{figure}
 
 We may now see that if we just define the bare $\beta$ relation as in
-Figure~\ref{fig:barebeta}, then we can obtain $\curva_\beta$ as the
+Figure~\ref{fig:barebeta}, then we can obtain $\betar$ as the
 compatible closure of $\beta$.  We may easily observe that
-$\curva_\beta$ as defined this way and as defined via the rules of
+$\betar$ as defined this way and as defined via the rules of
 Figure~\ref{fig:betar} are the same.  The definition using compatible
 closure and bare $\beta$ just decomposes the rules of
 Figure~\ref{fig:betar} into two parts, but is otherwise essentially
@@ -869,7 +869,7 @@ presenting examples).
     \infer{(\lam{x}{t})\ t' \ \ \beta\ \ [t'/x]t}{\ }
   \]
 
-  \caption{Definition of the bare $\beta$ relation, from which $\curva_\beta$ may then be defined
+  \caption{Definition of the bare $\beta$ relation, from which $\betar$ may then be defined
     via compatible closure.  This again presupposes the substitution is defined.}
 \label{fig:barebeta}
 \end{figure}
@@ -1305,15 +1305,15 @@ renamings may be possible.
 \item The following shows that $(\lam{x}{\lam{y}{x\ x}})\ \lam{x}{y}$
   multi-step $\beta$-reduces to $\lam{w}{y}$.  For the $=_\alpha$
   step, I am underlining the underlying $\alpha$-step that has been
-  taken, and similarly for the $\curva_\beta$ steps, I am
+  taken, and similarly for the $\betar$ steps, I am
   underlining the underlying $\beta$-step that has been taken (with
   $\alpha$ and $\beta$ of Figures~\ref{fig:barealpha} and~\ref{fig:barebeta}).
 
   \[
 \begin{array}{ll}
   (\lam{x}{\underline{\lam{y}{x\ x}}})\ \lam{x}{y} & =_\alpha \\
-  \underline{(\lam{x}{\lam{w}{x\ x}})\ \lam{x}{y}} & \curva_\beta \\
-  \lam{w}{\underline{(\lam{x}{y})\ \lam{x}{y}}} & \curva_\beta \\
+  \underline{(\lam{x}{\lam{w}{x\ x}})\ \lam{x}{y}} & \betar \\
+  \lam{w}{\underline{(\lam{x}{y})\ \lam{x}{y}}} & \betar \\
   \lam{w}{y} & \ 
 \end{array}
 \]
@@ -1391,7 +1391,8 @@ sometimes of interest to consider the equivalence closure of
 $\beta$-reduction with renaming:
 
 \begin{definition}[$\beta$-equivalence]
-  We define $\approx$ as the equivalence closure of $\curva$; i.e., $=_{\curva}$.
+\label{def:betaeq}
+  We define $\betaeq$ as the equivalence closure of $\betaa$; i.e., $=_{\betaa}$.
   \end{definition}
 
 \section{Exercises}

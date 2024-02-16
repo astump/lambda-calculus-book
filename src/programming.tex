@@ -129,10 +129,10 @@ Church-encoded naturals:
 \[
 \begin{array}{ll}
   \underline{\textit{succ}}\ 2 & = \\
-  \underline{(\lam{n}{\lam{f}{\lam{x}{f\ (n\ f\ x)}}})\ 2} & \leadsto \\
+  \underline{(\lam{n}{\lam{f}{\lam{x}{f\ (n\ f\ x)}}})\ 2} & \betaa \\
   \lam{f}{\lam{x}{f\ (\underline{2}\ f\ x)}} & = \\
-  \lam{f}{\lam{x}{f\ (\underline{\lam{f}{(\lam{x}{f\ (f\ x)})}\ f}\ x)}} & \leadsto \\
-  \lam{f}{\lam{x}{f\ (\underline{(\lam{x}{f\ (f\ x)})\ x})}} & \leadsto \\
+  \lam{f}{\lam{x}{f\ (\underline{\lam{f}{(\lam{x}{f\ (f\ x)})}\ f}\ x)}} & \betaa \\
+  \lam{f}{\lam{x}{f\ (\underline{(\lam{x}{f\ (f\ x)})\ x})}} & \betaa \\
   \lam{f}{\lam{x}{f\ (f\ (f\ x))}} & = \\
   3
 \end{array}
@@ -159,28 +159,28 @@ His definition is somewhat complicated, so here is a simpler one.  To my knowled
 \noindent Writing $F$ for $\lam{m}{\textit{just}\ (m\ \textit{succ}\ 0)}$, let us first see how $2\ F\ 0$ computes:
 \[
 \begin{array}{ll}
-  \underline{2\ F}\ 0 & \leadsto \\
-  \underline{(\lam{a}{F\ (F\ a)})\ 0} & \leadsto \\
-  F\ (\underline{F\ 0}) & \leadsto \\
-  F\ (\textit{just}\ (\underline{0\ \textit{succ}}\ 0)) & \leadsto \\
-  F\ (\textit{just}\ (\underline{\lam{a}{a}\ 0})) & \leadsto \\
-  F\ (\underline{\textit{just}\ 0}) & \leadsto \\
-  \underline{F\ \lam{j}{\lam{k}{j\ 0}}} & \leadsto \\    
-  \textit{just}\ (\underline{(\lam{j}{\lam{k}{j\ 0}})\ \textit{succ}}\ 0) & \leadsto \\
-  \textit{just}\ (\underline{(\lam{k}{\textit{succ}\ 0})\ 0}) & \leadsto \\
-  \underline{\textit{just}\ (\textit{succ}\ 0)} & \leadsto \\
+  \underline{2\ F}\ 0 & \betaa \\
+  \underline{(\lam{a}{F\ (F\ a)})\ 0} & \betaa \\
+  F\ (\underline{F\ 0}) & \betaa \\
+  F\ (\textit{just}\ (\underline{0\ \textit{succ}}\ 0)) & \betaa \\
+  F\ (\textit{just}\ (\underline{\lam{a}{a}\ 0})) & \betaa \\
+  F\ (\underline{\textit{just}\ 0}) & \betaa \\
+  \underline{F\ \lam{j}{\lam{k}{j\ 0}}} & \betaa \\    
+  \textit{just}\ (\underline{(\lam{j}{\lam{k}{j\ 0}})\ \textit{succ}}\ 0) & \betaa \\
+  \textit{just}\ (\underline{(\lam{k}{\textit{succ}\ 0})\ 0}) & \betaa \\
+  \underline{\textit{just}\ (\textit{succ}\ 0)} & \betaa \\
   \lam{j}{\lam{k}{j\ (\textit{succ}\ 0)}} & \ 
 \end{array}
 \]
 \noindent Now here is the reduction for $\textit{pred}\ 2$:
 \[
 \begin{array}{ll}
-  \underline{\textit{pred}\ 2} & \leadsto \\
-  \underline{2\ F\ 0}\ \textit{id}\ 0 & \leadsto^* \textnormal{[by above reduction sequence]}\\
-  \underline{(\lam{j}{\lam{k}{j\ (\textit{succ}\ 0)}})\ \textit{id}}\ 0 & \leadsto \\
-  \underline{(\lam{k}{\textit{id}\ (\textit{succ}\ 0)})\ 0} & \leadsto \\
-  \underline{\textit{id}\ (\textit{succ}\ 0)} & \leadsto \\
-  \underline{\textit{succ}\ 0} & \leadsto^* \\
+  \underline{\textit{pred}\ 2} & \betaa \\
+  \underline{2\ F\ 0}\ \textit{id}\ 0 & \betaa^* \textnormal{[by above reduction sequence]}\\
+  \underline{(\lam{j}{\lam{k}{j\ (\textit{succ}\ 0)}})\ \textit{id}}\ 0 & \betaa \\
+  \underline{(\lam{k}{\textit{id}\ (\textit{succ}\ 0)})\ 0} & \betaa \\
+  \underline{\textit{id}\ (\textit{succ}\ 0)} & \betaa \\
+  \underline{\textit{succ}\ 0} & \betaa^* \\
   1 &\ 
 \end{array}
 \]
@@ -195,17 +195,17 @@ not know who invented it):
 see how $3\ F\ A$ computes:
 \[
 \begin{array}{ll}
-  \underline{3\ F}\ A & \leadsto \\
-  (\lam{x}{F\ (F\ (F\ x))})\ A & \leadsto \\
+  \underline{3\ F}\ A & \betaa \\
+  (\lam{x}{F\ (F\ (F\ x))})\ A & \betaa \\
   F\ (F\ (\underline{F\ A})) & = \\
-  F\ (F\ (\underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ \lam{h}{x}})) & \leadsto \\  
-  F\ (F\ (\lam{h}{h\ \underline{((\lam{h}{x})\ f)}})) & \leadsto \\
+  F\ (F\ (\underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ \lam{h}{x}})) & \betaa \\  
+  F\ (F\ (\lam{h}{h\ \underline{((\lam{h}{x})\ f)}})) & \betaa \\
   F\ (\underline{F}\ (\lam{h}{h\ x})) & = \\
-  F\ (\underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{h\ x})}) & \leadsto \\      
-  F\ (\lam{h}{h\ \underline{((\lam{h}{h\ x})\ f)}}) & \leadsto \\
+  F\ (\underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{h\ x})}) & \betaa \\      
+  F\ (\lam{h}{h\ \underline{((\lam{h}{h\ x})\ f)}}) & \betaa \\
   \underline{F}\ (\lam{h}{h\ (f\ x)}) & = \\
-  \underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{h\ (f\ x)})} & \leadsto \\
-  \lam{h}{h\ \underline{((\lam{h}{h\ (f\ x)})\ f)}} & \leadsto \\
+  \underline{(\lam{g}{\lam{h}{h\ (g\ f)}})\ (\lam{h}{h\ (f\ x)})} & \betaa \\
+  \lam{h}{h\ \underline{((\lam{h}{h\ (f\ x)})\ f)}} & \betaa \\
   \lam{h}{h\ (f\ (f\ x))} & \
 \end{array}
 \]
@@ -218,10 +218,10 @@ by applying the whole result to \textit{id}.  That produces, then, just $f\ (f\ 
 into the expression on the second line below (capturing their free variables $f$ and $x$), we have
 \[
 \begin{array}{ll}
-  \textit{pred}\ 3 & \leadsto^* \\
-  \lam{f}{\lam{x}{\underline{3\ F\ A}\ \textit{id}}} & \leadsto^* \\
-  \lam{f}{\lam{x}{\underline{(\lam{h}{h\ (f\ (f\ x))})\ \textit{id}}}} & \leadsto \\
-  \lam{f}{\lam{x}{\underline{(\textit{id}\ (f\ (f\ x)))}}} & \leadsto \\
+  \textit{pred}\ 3 & \betaa^* \\
+  \lam{f}{\lam{x}{\underline{3\ F\ A}\ \textit{id}}} & \betaa^* \\
+  \lam{f}{\lam{x}{\underline{(\lam{h}{h\ (f\ (f\ x))})\ \textit{id}}}} & \betaa \\
+  \lam{f}{\lam{x}{\underline{(\textit{id}\ (f\ (f\ x)))}}} & \betaa \\
   \lam{f}{\lam{x}{f\ (f\ x)}} & = \\  
   2 &\ 
 \end{array}
@@ -347,11 +347,11 @@ that for any Scott-encoded successor number, we have the following reduction:
 \[
 \begin{array}{ll}
   \underline{\textit{pred}}\ \rep{n+1} & = \\
-\underline{(\lam{n}{n\ \textit{id}\ 0})\ \rep{n+1}} & \leadsto \\
+\underline{(\lam{n}{n\ \textit{id}\ 0})\ \rep{n+1}} & \betaa \\
 \underline{\rep{n+1}}\ \textit{id}\ 0 & = \\
-\underline{(\lam{f}{\lam{x}{f\ \rep{n}}})\ \textit{id}}\ 0 & \leadsto \\
-\underline{(\lam{x}{\textit{id}\ \rep{n}})\ 0} & \leadsto \\
-\underline{\textit{id}\ \rep{n}} & \leadsto \\
+\underline{(\lam{f}{\lam{x}{f\ \rep{n}}})\ \textit{id}}\ 0 & \betaa \\
+\underline{(\lam{x}{\textit{id}\ \rep{n}})\ 0} & \betaa \\
+\underline{\textit{id}\ \rep{n}} & \betaa \\
 \rep{n} & \
 \end{array}
 \]
@@ -399,8 +399,8 @@ lambda term not containing $x$ free.  Then we have:
 \[
 \begin{array}{ll}
   \underline{Y}\ t & = \\
-  \underline{(\lam{f}{(\lam{x}{f\ (x\ x)})\ (\lam{x}{f\ (x\ x)})})\ t} & \leadsto \\
-  \underline{(\lam{x}{t\ (x\ x)})\ (\lam{x}{t\ (x\ x)})} & \leadsto \\
+  \underline{(\lam{f}{(\lam{x}{f\ (x\ x)})\ (\lam{x}{f\ (x\ x)})})\ t} & \betaa \\
+  \underline{(\lam{x}{t\ (x\ x)})\ (\lam{x}{t\ (x\ x)})} & \betaa \\
   t\ \underline{((\lam{x}{t\ (x\ x)})\ (\lam{x}{t\ (x\ x)}))} & =_\beta \\
   t\ (Y\ t)
 \end{array}
@@ -450,17 +450,17 @@ But to remain at the linguistic level for the moment, let us try to get an intui
 for how every term $t$ can have $Y\ t$ for a fixed point.  Let us write $U$ for $\lam{x}{t\ (x\ x)}$.  We have seen that
 \[
 \begin{array}{ll}
-  \underline{Y\ t} & \leadsto \\
-  \underline{U\ U} & \leadsto \\
+  \underline{Y\ t} & \betaa \\
+  \underline{U\ U} & \betaa \\
   t\ (U\ U)&\ 
 \end{array}
   \]
 \noindent  This reduction sequence may then be continued as long as we wish:
 \[
 \begin{array}{ll}
-  t\ \underline{(U\ U)}&\leadsto \\
-  t\ (t\ \underline{(U\ U)})&\leadsto \\  
-  t\ (t\ (t\ \underline{(U\ U)}))&\leadsto \\
+  t\ \underline{(U\ U)}&\betaa \\
+  t\ (t\ \underline{(U\ U)})&\betaa \\  
+  t\ (t\ (t\ \underline{(U\ U)}))&\betaa \\
   \multicolumn{2}{l}{\cdots}
 \end{array}
 \]
@@ -520,8 +520,8 @@ sequences are infinite.  Indeed, for a very simple example, consider
 \noindent This term has both an infinite reduction sequence, and also infinitely many finite reduction sequences.  For examples of the first and second, in order, consider:
 \[
 \begin{array}{l}
-  (\lam{x}{\lam{y}{y}})\ \underline{\Omega}\ \leadsto\ (\lam{x}{\lam{y}{y}})\ \underline{\Omega}\ \leadsto \ \cdots \\
-  \underline{(\lam{x}{\lam{y}{y}})\ \Omega} \ \leadsto \ \lam{y}{y}
+  (\lam{x}{\lam{y}{y}})\ \underline{\Omega}\ \betaa\ (\lam{x}{\lam{y}{y}})\ \underline{\Omega}\ \betaa \ \cdots \\
+  \underline{(\lam{x}{\lam{y}{y}})\ \Omega} \ \betaa \ \lam{y}{y}
 \end{array}
 \]
 \noindent The normalizing reduction sequence (the second one) drops out the non-normalizing $\Omega$ subterm.
@@ -556,17 +556,17 @@ easier consideration below:
 \[
 \begin{array}{ll}
   \underline{\textit{add}}\ 2\ 2 & = \\
-  \underline{Y\ \textit{addh}}\ 2\ 2 & \leadsto \\
-  \underline{U\ U}\ 2\ 2 & \leadsto \\  
+  \underline{Y\ \textit{addh}}\ 2\ 2 & \betaa \\
+  \underline{U\ U}\ 2\ 2 & \betaa \\  
   \underline{\textit{addh}}\ (U\ U)\ 2\ 2 & = \\
-  \underline{(\lam{\textit{add}}{\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (\textit{add}\ p\ m)})\ m}}})\ (U\ U)}\ 2\ 2 & \leadsto \\  
-  \underline{(\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (U\ U\ p\ m)})\ m}})\ 2\ 2} & \leadsto^2 \\
+  \underline{(\lam{\textit{add}}{\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (\textit{add}\ p\ m)})\ m}}})\ (U\ U)}\ 2\ 2 & \betaa \\  
+  \underline{(\lam{n}{\lam{m}{n\ (\lam{p}{\textit{succ}\ (U\ U\ p\ m)})\ m}})\ 2\ 2} & \betaa^2 \\
   \underline{2}\ (\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 2 & = \\
-  \underline{(\lam{f}{\lam{x}{f\ 1}})\ (\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 2} & \leadsto^2 \\
-  \underline{(\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 1} & \leadsto \\
-  \textit{succ}\ \underline{(U\ U\ 1\ 2)}) & \leadsto^* \\
-  \textit{succ}\ (\textit{succ}\ \underline{(U\ U\ 0\ 2)}) & \leadsto^* \\
-  \textit{succ}\ (\textit{succ}\ 2) & \leadsto^* \\
+  \underline{(\lam{f}{\lam{x}{f\ 1}})\ (\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 2} & \betaa^2 \\
+  \underline{(\lam{p}{\textit{succ}\ (U\ U\ p\ 2)})\ 1} & \betaa \\
+  \textit{succ}\ \underline{(U\ U\ 1\ 2)}) & \betaa^* \\
+  \textit{succ}\ (\textit{succ}\ \underline{(U\ U\ 0\ 2)}) & \betaa^* \\
+  \textit{succ}\ (\textit{succ}\ 2) & \betaa^* \\
   4 &\ 
   \end{array}
 \]
@@ -602,16 +602,40 @@ x & := & \ \lam{m}{\lam{s}{\lam{z}{m}}} \\
 
 \[
 \begin{array}{ll}
-  \underline{\textit{add}\ 2\ 2} & \leadsto^2 \\
-  \underline{2\ f}\ (x\ 2)\ f\ (x\ 2) & \leadsto \\
-  \underline{f\ 1\ f\ (x\ 2)} & \leadsto^3 \\
-  \textit{succ}\ \underline{(1\ f\ (x\ 2)\ f\ (x\ 2))} & \leadsto^4 \\
-  \textit{succ}\ (\textit{succ}\ \underline{(0\ f\ (x\ 2)\ f\ (x\ 2))}) & \leadsto \\
-  \textit{succ}\ (\textit{succ}\ \underline{((x\ 2)\ f\ (x\ 2))}) & \leadsto^3 \\
-  \underline{\textit{succ}\ (\textit{succ}\ 2)} & \leadsto^* \\    
+  \underline{\textit{add}\ 2\ 2} & \betaa^2 \\
+  \underline{2\ f}\ (x\ 2)\ f\ (x\ 2) & \betaa \\
+  \underline{f\ 1\ f\ (x\ 2)} & \betaa^3 \\
+  \textit{succ}\ \underline{(1\ f\ (x\ 2)\ f\ (x\ 2))} & \betaa^4 \\
+  \textit{succ}\ (\textit{succ}\ \underline{(0\ f\ (x\ 2)\ f\ (x\ 2))}) & \betaa \\
+  \textit{succ}\ (\textit{succ}\ \underline{((x\ 2)\ f\ (x\ 2))}) & \betaa^3 \\
+  \underline{\textit{succ}\ (\textit{succ}\ 2)} & \betaa^* \\    
   4
 \end{array}
   \]
+
+\section{The Parigot encoding}
+
+Before (it seems) his discovery of a way to recurse on Scott-encoded
+numbers, Parigot proposed an encoding that combines the Church and
+Scott encodings:
+
+\[
+\begin{array}{lll}
+  0 & := & \lam{f}{\lam{x}{x}} \\
+  1 & := & \lam{f}{\lam{x}{f\ 0\ x}} \\
+  2 & := & \lam{f}{\lam{x}{f\ 1\ (f\ 0\ x)}} \\
+  3 & := & \lam{f}{\lam{x}{f\ 2\ (f\ 1\ (f\ 0\ x))}} \\
+  \multicolumn{3}{l}{\cdots} \\
+  \rep{n+2} & := & \lam{f}{\lam{x}{f\ \rep{n+1}\ (f\ \rep{n}\ (\cdots\ (f\ 0\ x)))}} \\
+  \multicolumn{3}{l}{\cdots} 
+\end{array}
+\]
+
+\noindent Another way to see the encoding is to observe that for every $n$,
+\[
+\rep{n+1}\ \betaeq\ \lam{f}{\lam{x}{f\ \rep{n}\ (\rep{n}\ f\ x)}}
+\]
+\noindent where $\betaeq$ denotes $\beta$-equivalence (Definition~\ref{def:betaeq})
 
 \section{Exercises}
 
