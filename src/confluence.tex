@@ -32,14 +32,30 @@ Confluence can be seen as a generalization of determinism
 $a$ that can reach distinct elements $b$ and $c$ (that is, $a \to^* b$
 and $a \to^* c$, with $b \neq c$), but these elements can be joined
 back at some element $d$ (so $b \to^*d$ and $c\to^*d$).  So $a$ is
-nondeterministic, yet in a way which is somewhat controlled: no matter
+nondeterministic, yet in a somewhat controlled way: no matter
 which two paths we follow from $a$, there is always some way to
-reconverge.  In this chapter, we will prove that the $\betaa$
-relation ($\beta$-reduction with renaming) of lambda calculus is
-confluent, following a proof attributed to William Tait and Per
-Martin-L\"of (but never published by either of them).  Some of our
-discussion is quite generic, however, and applies to any binary
-relation $\to$ over some set of elements (not necessarily terms).
+reconverge.
+
+In this chapter, we will prove that the relation $\curva_\alpha \cup
+\curva_\beta$ is confluent.  This relation subsumes the relation
+$\betaa$ of single-step $\beta$-reduction with renaming
+(Definition~\ref{def:betaa}), because it allows any sequence of
+$\curva_\alpha$ and $\curva_\beta$ steps, while a non-trivial
+$\betaa$-reduction sequence must end with a $\curva_\beta$ step.
+Working with the more permissive relation will enable a cleaner
+formulation of confluence.  The proof we will follow is attributed to
+William Tait and Per Martin-L\"of (but never published by either of
+them).  Some of our discussion is quite generic, however, and applies
+to any binary relation $\to$ over some set of elements (not
+necessarily terms).
+
+We will use the notation $\abeta$ for the relation that we
+will study in this chapter:
+
+\begin{definition}
+  \label{def:abeta}
+  $\abeta$ is defined to be $\curva_\alpha \cup \curva_\beta$.
+  \end{definition}
 
 \section{The diamond property}
 
@@ -150,8 +166,8 @@ In this form, the following lemma states that reflexive-transitive closure prese
 
   \end{proof}
 
-Thanks to Theorem~\ref{thm:stardia}, we know that if we would like to establish confluence of $\beta$-reduction
-with renaming, it would suffice to prove that this relation has the diamond property.  But this is easily seen
+Thanks to Theorem~\ref{thm:stardia}, we know that if we would like to establish confluence of $\abeta$, it
+would suffice to prove that this relation has the diamond property.  But this is easily seen
 not to be the case.  Consider the diagram in Figure~\ref{fig:betanodia}.  The term at the peak (top) of the diagram
 has two redexes, shown underlined.  Down the left side of the peak we reduce the leftmost redex, and down the right
 side, the rightmost.  We can indeed join the resulting terms, at term $z\ z$, but this requires two steps along the
@@ -159,7 +175,7 @@ left side of the valley (running diagonally right to $z\ z$), while needing just
 side of the valley.  This example shows:
 
 \begin{theorem}
-  $\betaa$ lacks the diamond property
+  $\abeta$ lacks the diamond property
 \end{theorem}
 
 It is the beautiful observation at the heart of the Tait--Martin-L\"of proof of confluence that
@@ -190,7 +206,7 @@ Actually, the task of confluence is made even easier by observing the following:
   \end{proof}
 
 \noindent So to use Theorem~\ref{thm:tml}, by this lemma, we just need to identify some relation
-intermediate between $\betaa$ and $\betaa^*$, which satisfies the diamond property.  This relation
+intermediate between $\abeta$ and $\abeta^*$, which satisfies the diamond property.  This relation
 is $\Pred^\alpha$, defined next.
 
 \begin{figure}
@@ -218,15 +234,16 @@ is $\Pred^\alpha$, defined next.
 
 \section{Parallel reduction}
 
-In this section, we define a relation $\Pred^\alpha$ for parallel reduction with renaming.  The relation $\Pred$ is defined
+In this section, we define a relation $\Pred^\alpha$ for parallel reduction with renaming.  This relation will be the desired
+intermediate relation between $\abeta$ and $\abeta^*$, with the diamond property.  The relation $\Pred$ is defined
 by the rules of Figure~\ref{fig:pred} (i.e., $\Pred$ is the set of pairs $(t,t')$ such that $t\ \Pred\ t'$ has a finite
 derivation using those rules).  We then define $\Pred^\alpha$ from $\Pred$ similarly to the way we defined $\betaa$ from
-$\betaa_\beta$:
+$\betaa_\beta$ (Definition~\ref{dec:betaa}):
 
 \begin{definition}
-  $\Pred^\alpha$ is $=_\alpha\Pred =_\alpha$.
+  $\Pred^\alpha$ is $=_\alpha\Pred $.
 \end{definition}
-\noindent So one takes an $\alpha$-equivalence step, then a $\Pred$ step, and then another $\alpha$-equivalence step.
+\noindent So one takes an $\alpha$-equivalence step, then a $\Pred$ step.
 The $\Pred$ relation allows reduction, in a single step, of any subset of the redexes of the first related term,
 to obtain the second.  One could reduce a single redex, several redexes (even nested ones), or even no redexes at all.
 
@@ -288,11 +305,21 @@ to obtain the second.  One could reduce a single redex, several redexes (even ne
 
 \begin{lemma}
   \label{lem:betapar}
-  $\betaa_\beta\ \subseteq\ \Pred$.
+  $\abeta\ \subseteq\ \Pred^\alpha$.
 \end{lemma}
 \begin{proof}
-  Expanding the statement of the lemma, we see that it suffices to assume $t \betaa_\beta t'$ for some $t$ and $t'$,
-  and show $t \Pred t'$.  The proof is by induction on the derivation of $t \betaa_\beta t'$ (via the rules of Figure~\ref{fig:betar}).
+  It suffices to assume $t \abeta t'$ for some $t$ and $t'$,
+  and show $t \Pred^\alpha t'$.  Since $\abeta$ is defined (Definition~\ref{def:abeta}) to be $\curva_\alpha \cup \curva_\beta$,
+  let us consider each possibility.  If we have $t \curva_\alpha t'$, then we have $t \Pred^\alpha t'$, because 
+  \begin{enumerate}
+  \item $t =_\alpha t'$, and
+  \item $t' \Pred t'$, by Lemma~\ref{lem:predrefl}
+  \end{enumerate}
+  \noindent So we get $t =_\alpha t' \Pred t'$, which suffice to prove $t \Pred^\alpha t'$ (by definition of relational composition).
+
+  Now suppose we have $t \curva_\beta t'$.  Then the proof is by
+  induction on the derivation of $t \curva_\beta t'$ (via the rules of
+  Figure~\ref{fig:betar}).
 
   \case{ }
   \[
@@ -340,11 +367,18 @@ to obtain the second.  One could reduce a single redex, several redexes (even ne
 
 \begin{lemma}
   \label{lem:predmbeta}
-  $\Pred\ \subseteq\ \betaa_\beta^*$
+  $\Pred^\alpha\ \subseteq\ \abeta^*$
 \end{lemma}
 \begin{proof}
-  Assume $t \Pred t'$ and show $t \betaa_\beta^* t'$.  The proof is by induction on the assumed
-  derivation.
+  Assume $t \Pred^\alpha t'$.  This implies that there exists some $t''$ with
+  \[
+  t =_\alpha t'' \Pred t'
+  \]
+  \noindent Since $\abeta$ includes $\curva_\alpha$ by definition, we have
+  $t \abeta^* t''$.  So it suffices to show $t'' \abeta^* t'$.  In fact,
+  we will show the stronger property $t'' \curva_\beta^* t'$.  This
+  is done by  induction on the assumed
+  derivation of $t'' \Pred t'$.
 
   \case{ }
   \[
@@ -407,13 +441,13 @@ to obtain the second.  One could reduce a single redex, several redexes (even ne
 \begin{array}{lll}
 x^* & = & x \\
 (\lam{x}{t})^* & = & \lam{x}{t^*} \\
-(t_1\ t_2)^* & = & t_1^*\ t_2^*,\textnormal{ if} t_1\ t_2\textnormal{ is not a redex} \\
-((\lam{x}{t_1}) t_2)^* & = & [t_2^*/x]t_1^*
+(t_1\ t_2)^* & = & t_1^*\ t_2^*,\textnormal{ if } t_1\ t_2\textnormal{ is not a redex} \\
+((\lam{x}{t_1})\ t_2)^* & = & [t_2^*/x]t_1^*
 \end{array}
 \]
 \caption{The definition of the maximal parallel contraction $t^*$ of term $t$.  The substitution in the fourth
-  equation must be defined, otherwise $t^*$ is undefined.  Please parse these expressions
-  assuming that the $()^*$ operator binds more tightly than the constructs of $\lambda$-calculus. So a meta-expression
+  equation must be defined, otherwise $t^*$ is undefined.   These expressions
+  should be parsed assuming that the $()^*$ operator binds more tightly than the constructs of $\lambda$-calculus. So a meta-expression
 like $\lam{x}{t^*}$ should be parsed as $\lam{x}{(t^*)}$.}
 \label{fig:mpc}
 \end{figure}
