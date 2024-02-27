@@ -234,18 +234,19 @@ is $\Pred^\alpha$, defined next.
 
 \section{Parallel reduction}
 
-In this section, we define a relation $\Pred^\alpha$ for parallel reduction with renaming.  This relation will be the desired
-intermediate relation between $\abeta$ and $\abeta^*$, with the diamond property.  The relation $\Pred$ is defined
+In this section, we define a relation $\Pred^\alpha$ for parallel reduction with renaming\index{parallel reduction}\index{$\Pred^\alpha$}.  This relation will be the desired
+intermediate relation between $\abeta$ and $\abeta^*$, with the diamond property.  $\Pred$ is defined
 by the rules of Figure~\ref{fig:pred} (i.e., $\Pred$ is the set of pairs $(t,t')$ such that $t\ \Pred\ t'$ has a finite
-derivation using those rules).  We then define $\Pred^\alpha$ from $\Pred$ similarly to the way we defined $\betaa$ from
-$\betaa_\beta$ (Definition~\ref{dec:betaa}):
+derivation using those rules).  It allows reduction, in a single step, of any subset of the redexes of the first related term,
+to obtain the second.  One could reduce a single redex, several redexes (even nested ones), or no redexes at all.
+
+We then define $\Pred^\alpha$ from $\Pred$ similarly to the way we defined $\betaa$ from
+$\betaa_\beta$ (Definition~\ref{def:betaa})\index{$\Pred$}:
 
 \begin{definition}
   $\Pred^\alpha$ is $=_\alpha\Pred $.
 \end{definition}
 \noindent So one takes an $\alpha$-equivalence step, then a $\Pred$ step.
-The $\Pred$ relation allows reduction, in a single step, of any subset of the redexes of the first related term,
-to obtain the second.  One could reduce a single redex, several redexes (even nested ones), or even no redexes at all.
 
 \newcommand{\predvar}[0]{\infer{x \Pred x}{\ }}
 
@@ -277,6 +278,55 @@ to obtain the second.  One could reduce a single redex, several redexes (even ne
 \caption{The definition of parallel reduction}
 \label{fig:pred}
 \end{figure}
+
+Intuitively, we can see that $\Pred$ is intermediate between $\curva_\beta$ and $\curva_\beta^*$, because
+it allows reducing any subset of the term's redexes.  Critically, though, it does not allow reduction
+of \emph{created redexes}.\index{$\beta$-redex!created}  These are redexes that appear when a variable is replaced by a $\lambda$-abstraction.  For example, we have the reduction
+\[
+(\lam{x}{x\ y})\ \lam{z}{z}\ \curva_\beta (\lam{z}{z})\ y
+\]
+\noindent The latter term is a created redex, because there is no corresponding redex in the starting term, from which it is derived.
+
+\subsection{Examples}
+
+Here are some examples of parallel reduction.
+
+\begin{enumerate}
+\item Here are all the terms to which $(\lam{x}{x\ x})\ ((\lam{y}{y})\ z)$ parallel reduces:
+  \begin{enumerate}
+  \item $(\lam{x}{x\ x})\ ((\lam{y}{y})\ z)$, which is the starting term itself;
+  \item $(\lam{x}{x\ x})\ z$, where the right redex in the starting term has been contracted;
+  \item $((\lam{y}{y})\ z)\ ((\lam{y}{y})\ z)$, where the left redex has been contracted; and
+  \item $z\ z$, where both redexes have been contracted.
+  \end{enumerate}
+
+  The derivation of the parallel reduction to the last of these is (for an example):
+
+  \[
+  \infer{(\lam{x}{x\ x})\ ((\lam{y}{y})\ z) \Pred z\ z}
+        {\infer{x\ x \Pred x\ x}{\infer{x \Pred x}{\ } & \infer{x \Pred x}{\ }} & 
+          \infer{(\lam{y}{y})\ z \Pred z}
+                {\infer{y \Pred y}{\ } &
+                  \infer{z \Pred z}{\ }}}
+   \]
+
+ \item We have the following parallel reduction:
+   \[
+   (\lam{x}{\lam{y}{x\ y}})\ (\lam{x}{\lam{y}{x\ y}}) \Pred \lam{y}{(\lam{x}{\lam{y}{x\ y}})\ y}
+   \]
+   \noindent This same starting term requires $\alpha$-equivalence to reduce further:
+   \[
+   \begin{array}{ll}
+     \underline{(\lam{x}{\lam{y}{x\ y}})\ (\lam{x}{\lam{y}{x\ y}})} &\curva_\beta \\
+     \lam{y}{(\lam{x}{\underline{\lam{y}{x\ y}}})\ y} & \curva_a \\
+     \lam{y}{\underline{(\lam{x}{\lam{w}{x\ w}})\ y}} & \curva_\beta \\
+     \lam{y}{\lam{w}{y\ w}} & \
+   \end{array}
+   \]
+   \noindent But with parallel reduction, as long as all bound variables are distinct from the free variables,
+   $\alpha$-equivalence is not required for a single $\Pred$-step.  And a single $\Pred$-step cannot reduce the starting term of this example past where the next redex is created.
+
+\end{enumerate}
 
 \subsection{Properties of parallel reduction}
 
@@ -436,13 +486,23 @@ to obtain the second.  One could reduce a single redex, several redexes (even ne
 
 \section{The maximal parallel contraction of a term}
 
+Parallel reduction allows contraction of any subset of the redexes of
+a term.  To show the diamond property of $\Pred^\alpha$, we will make
+use of an idea of Takahashi, who observed that we can give a recursive
+definition of the term $t^*$ we get by contracting all of term $t$'s redexes~\cite{takahashi95}.
+The definition is in Figure~\ref{fig:mpc}.  Takahashi did not offer a name
+for this function; let us call $t^*$ the maximal parallel contraction (mpc) of $t$.
+
 \begin{figure}
 \[
 \begin{array}{lll}
 x^* & = & x \\
 (\lam{x}{t})^* & = & \lam{x}{t^*} \\
 (t_1\ t_2)^* & = & t_1^*\ t_2^*,\textnormal{ if } t_1\ t_2\textnormal{ is not a redex} \\
-((\lam{x}{t_1})\ t_2)^* & = & [t_2^*/x]t_1^*
+((\lam{x}{t_1})\ t_2)^* & = &  [t_2^*/x]t_1^* 
+%\left\{ \begin{array}{ll}
+%            (\lam{x}{t_1^*})\ t_2^* & \textnormal{ otherwise} 
+%         \end{array}\right.
 \end{array}
 \]
 \caption{The definition of the maximal parallel contraction $t^*$ of term $t$.  The substitution in the fourth
@@ -452,6 +512,42 @@ like $\lam{x}{t^*}$ should be parsed as $\lam{x}{(t^*)}$.}
 \label{fig:mpc}
 \end{figure}
 
+The following obvious and easy to prove lemma is actually not needed for the proof of confluence,
+but worth mentioning anyway.
+
+\begin{lemma}
+  For all terms $t'$, there exists $\alpha$-equivalent $t$ such that $t \Pred^\alpha t^*$.
+\end{lemma}
+\begin{proof}
+  Let $t$ be a term $\alpha$-equivalent to $t'$ but with all bound variables distinct from each
+  other and the free variables of $t'$.  Now we may proceed by induction on $t$.
+
+  \case{ } $t$ is a variable $x$.  Then use
+  \[
+  \infer{x \Pred x}{\ }
+  \]
+
+  
+\case{ } $t$ is an application $t_1\ t_2$ for some $t_1$ and $t_2$, where $t_1\ t_2$ is not a redex. Then we may construct:
+\[
+\infer{t_1\ t_2 \Pred t_1^*\ t_2^*}{\infer[\textit{IH}]{t_1 \Pred t_1^*}{\ } & \infer[\textit{IH}]{t_2 \Pred t_2^*}{\ }}
+\]
+\noindent Since $(t_1\ t_2)^*$ equals $t_1^*\ t_2^*$ when $t_1\ t_2$ is not a redex, this is the desired conclusion.
+
+\case{ } $t$ is an application $(\lam{x}{t_1})\ t_2$ for some $x$, $t_1$, and $t_2$. Since all bound variables of $t$
+are distinct from each other and the free variables of $t$ by assumption, this redex is live
+(Definition~\ref{def:bredex}), and we can construct this derivation:
+\[
+\infer{(\lam{x}{t_1})\ t_2 \Pred [t_2^*/x]t_1^*}{\infer[\textit{IH}]{t_1 \Pred t_1^*}{\ } & \infer[\textit{IH}]{t_2 \Pred t_2^*}{\ }}
+\]
+\noindent Similarly to the previous case, this is the desired conclusion, because $((\lam{x}{t_1})\ t_2)^*$ equals
+$[t_2^*/x]t_1^*$, from the fourth equation of Figure~\ref{fig:pred}.
+
+\case{ } $t$ is a $\lambda$-abstraction $\lam{x}{t_1}$ for some $x$ and $t_1$. Then we construct:
+\[
+\infer{\lam{x}{t_1} \Pred \lam{x}{t_1^*}}{\infer[\textit{IH}]{t_1 \Pred t_1^*}{\ }}
+\]
+\end{proof}
 
 \section{Exercises}
 
@@ -500,6 +596,12 @@ this is optional.
 \subsection{Parallel reductions}
 
 \begin{enumerate}
+\item For each of the following terms, write out all the terms to which they parallel reduce in one step.
+  \begin{enumerate}
+  \item $\lam{x}{(\lam{y}{y\ y})\ ((\lam{z}{x})\ x)}$
+  \item $(\lam{x}{\lam{y}{y\ y}})\ ((\lam{z}{z})\ x)\ \lam{w}{w}$
+  \end{enumerate}
+
 \item Let us define a family $I_n$ of terms by recursion on $n\in\mathbb{N}$ (recall that \textit{id} is $\lam{x}{x}$):
   \[
   \begin{array}{lll}

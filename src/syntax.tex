@@ -17,7 +17,7 @@ meta-linguistic discussion, different such meta-variables refer to
 different variables.  So if we write $x$ and $y$, please understand
 that these meta-variables refer to different actual variables.
 
-Terms are then certain labeled binary trees.  We will use the
+Terms are then certain labeled binary trees\index{term}.  We will use the
 meta-variable $t$ (and decorated versions like $t_1$, $t'$, etc.) for
 terms.  They are either leaf nodes labeled with variables $x$,
 application nodes with subtrees $t_1$ and $t_2$, or lambda nodes with
@@ -353,7 +353,7 @@ understand that if the right-hand side of the equation is undefined
   \end{array}
 \]
   \caption{Recursive definition of capture-avoiding substitution as a
-    partial function.  If a recursive call is undefined then the outer
+    partial function\index{substitution}\index{$[t'/x]t$}.  If a recursive call is undefined then the outer
     call is also considered undefined.  The case that is similar to
     the last clause of the definition but where $y\in\textit{FV}(t')$
     is the basic undefined case.  The clauses (equations) of the definition are numbered for reference later.}
@@ -587,10 +587,11 @@ The relation $\betar$ is the set consisting of exactly those
 pairs $(t,t')$ where $t \betar t'$ is derivable (via a finite derivation) using the
 rules of Figure~\ref{fig:betar}.  We write applications of the
 relation in infix notation (as in those rules).  If $t \betar t'$
-we say that $t$ $\beta$-reduces to $t'$.  
+we say that $t$ $\beta$-reduces to $t'$.  \index{$\beta$-reduction}\index{$\betar$}
 \end{definition}
 
 \begin{definition}[$\beta$-redex]
+\label{def:bredex}
   Any term of the form $(\lam{x}{t})\ t'$ is called a $\beta$-redex.
   If $[t'/x]t$ is defined, let us call it a live $\beta$-redex.  Otherwise, let us call it
   a \emph{stuck} $\beta$-redex.\index{$\beta$-redex!stuck}\index{$\beta$-redex}\index{$\beta$-redex!live}
@@ -598,7 +599,7 @@ we say that $t$ $\beta$-reduces to $t'$.
 
 \begin{definition}[nested redex]
   Suppose that a redex $R_1$ is a subterm of some other redex $R_2$.
-  Then we say that $R_1$ is a nested redex (nested within $R_2$).
+  Then we say that $R_1$ is a nested redex (nested within $R_2$).\index{$\beta$-redex!nested}
   \end{definition}
  
 \begin{definition}[$\beta$-expansion]
@@ -1158,7 +1159,7 @@ definition:
 
 \begin{definition}[$\alpha$-equivalence]
 \label{def:alpha}
-  The relation $=_\alpha$, called $\alpha$-equivalence, is $\Tau[\alpha]^*$.
+  The relation $=_\alpha$, called $\alpha$-equivalence, is $\Tau[\alpha]^*$.\index{$\alpha$-equivalence}\index{$=_\alpha$}
   \end{definition}
 
 \subsection{Examples}
@@ -1265,7 +1266,7 @@ composition:
   \{ (x,z)\ |\ \exists\ y.\ (x,y)\in R \ \wedge\ (y,z) \in S \}
   \]
   \noindent That is, the set of pairs $(x,z)$ such that there exists some $y$ with
-  $(x,y) \in R$ and $(y,z)\in S$.
+  $(x,y) \in R$ and $(y,z)\in S$.\index{composition!relational}
 \end{definition}
 
 \begin{definition}[single step $\beta$-reduction with renaming]
@@ -1273,7 +1274,7 @@ composition:
   For compact notation below, let us write $\betaa$ for $=_\alpha \betar$
   (i.e., the relational composition of
 $\alpha$-equivalence, followed by single-step $\beta$-reduction).  This is called single-step
-$\beta$-reduction with renaming.
+$\beta$-reduction with renaming.\index{$\beta$-reduction!with renaming}\index{$\betaa$}
 \end{definition}
 
 A single $\beta$-reduction step with renaming allows one to perform some (possibly zero)
@@ -1292,7 +1293,7 @@ multi-step $\beta$-reduction with renaming, as follows:
   \[
   t_1 \betaa \ldots \betaa t_k
   \]
-  We say this is a $\betaa$-reduction sequence for $t_1\betaa^* t_k$.
+  We say this is a $\betaa$-reduction sequence for $t_1\betaa^* t_k$.\index{reduction sequence}
 \end{definition}
 
 Note that there may be more than one $\betaa$-reduction sequence
@@ -1348,7 +1349,7 @@ relation of Figure~\ref{fig:barebeta}.
 
 \begin{definition}[maximal relational sequence]
   An $R$-sequence $t_1\ R \ \cdots\ R\ t_n$ is called maximal iff
-  there is no $t'$ with $t_n\ R \ t'$.
+  there is no $t'$ with $t_n\ R \ t'$.\index{reduction sequence!maximal}
   \end{definition}
 
 A maximal $\beta$-reduction sequence is one that ends in a term
@@ -1373,7 +1374,7 @@ cannot be renamed; i.e., a term containing no $\lambda$-abstraction
 \label{def:normalizing}
   A term $t$ is $R$-normalizing, denoted $t \downarrow_R$, iff there is an $R$-normal form $t'$ with $t\ R^*\ t'$.
   If an $R$-reduction sequence ends in an $R$-normal form, we call the sequence $R$-normalizing as well.
-  If $R$ is left off, we assume it is $\betaa$.\index{normalizing term}
+  If $R$ is left off, we assume it is $\betaa$.\index{normalizing term}\index{$t\downarrow_R$}
 \end{definition}
 
 So a normalizing term $t$ is one which has a multi-step $\beta$-reduction to a term
@@ -1382,7 +1383,7 @@ which then does not reduce (with $\betaa$).
 \begin{definition}[non-normalizing]
 \label{def:nonnorm}
   If term $t$ is not $R$-normalizing, we call it $R$-non-normalizing, denoted $t \uparrow_R$.
-  As above, if $R$ is left off, we assume it is $\betaa$.\index{normalizing term}
+  As above, if $R$ is left off, we assume it is $\betaa$.\index{non-normalizing term}\index{$t\uparrow_R$}
 \end{definition}
 
 We will see a well-known example of a non-normalizing term in the next
@@ -1392,7 +1393,7 @@ $\beta$-reduction with renaming:
 
 \begin{definition}[$\beta$-equivalence]
 \label{def:betaeq}
-  We define $\betaeq$ as the equivalence closure of $\betaa$; i.e., $=_{\betaa}$.
+  We define $\betaeq$ as the equivalence closure of $\betaa$; i.e., $=_{\betaa}$.\index{$\beta$-equivalence}{$\betaeq$}
   \end{definition}
 
 \section{Exercises}

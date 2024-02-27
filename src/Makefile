@@ -10,3 +10,6 @@ book.pdf:	book.tex definitions.tex book.idx Makefile \
 
 book.idx: book.tex
 	makeindex book
+
+clean:
+	rm -f book.out *.aux
