@@ -484,71 +484,6 @@ Here are some examples of parallel reduction.
 \end{proof}
 
 
-\section{The maximal parallel contraction of a term}
-
-Parallel reduction allows contraction of any subset of the redexes of
-a term.  To show the diamond property of $\Pred^\alpha$, we will make
-use of an idea of Takahashi, who observed that we can give a recursive
-definition of the term $t^*$ we get by contracting all of term $t$'s redexes~\cite{takahashi95}.
-The definition is in Figure~\ref{fig:mpc}.  Takahashi did not offer a name
-for this function; let us call $t^*$ the maximal parallel contraction (mpc) of $t$.
-
-\begin{figure}
-\[
-\begin{array}{lll}
-x^* & = & x \\
-(\lam{x}{t})^* & = & \lam{x}{t^*} \\
-(t_1\ t_2)^* & = & t_1^*\ t_2^*,\textnormal{ if } t_1\ t_2\textnormal{ is not a redex} \\
-((\lam{x}{t_1})\ t_2)^* & = &  [t_2^*/x]t_1^* 
-%\left\{ \begin{array}{ll}
-%            (\lam{x}{t_1^*})\ t_2^* & \textnormal{ otherwise} 
-%         \end{array}\right.
-\end{array}
-\]
-\caption{The definition of the maximal parallel contraction $t^*$ of term $t$.  The substitution in the fourth
-  equation must be defined, otherwise $t^*$ is undefined.   These expressions
-  should be parsed assuming that the $()^*$ operator binds more tightly than the constructs of $\lambda$-calculus. So a meta-expression
-like $\lam{x}{t^*}$ should be parsed as $\lam{x}{(t^*)}$.}
-\label{fig:mpc}
-\end{figure}
-
-The following obvious and easy to prove lemma is actually not needed for the proof of confluence,
-but worth mentioning anyway.
-
-\begin{lemma}
-  For all terms $t'$, there exists $\alpha$-equivalent $t$ such that $t \Pred^\alpha t^*$.
-\end{lemma}
-\begin{proof}
-  Let $t$ be a term $\alpha$-equivalent to $t'$ but with all bound variables distinct from each
-  other and the free variables of $t'$.  Now we may proceed by induction on $t$.
-
-  \case{ } $t$ is a variable $x$.  Then use
-  \[
-  \infer{x \Pred x}{\ }
-  \]
-
-  
-\case{ } $t$ is an application $t_1\ t_2$ for some $t_1$ and $t_2$, where $t_1\ t_2$ is not a redex. Then we may construct:
-\[
-\infer{t_1\ t_2 \Pred t_1^*\ t_2^*}{\infer[\textit{IH}]{t_1 \Pred t_1^*}{\ } & \infer[\textit{IH}]{t_2 \Pred t_2^*}{\ }}
-\]
-\noindent Since $(t_1\ t_2)^*$ equals $t_1^*\ t_2^*$ when $t_1\ t_2$ is not a redex, this is the desired conclusion.
-
-\case{ } $t$ is an application $(\lam{x}{t_1})\ t_2$ for some $x$, $t_1$, and $t_2$. Since all bound variables of $t$
-are distinct from each other and the free variables of $t$ by assumption, this redex is live
-(Definition~\ref{def:bredex}), and we can construct this derivation:
-\[
-\infer{(\lam{x}{t_1})\ t_2 \Pred [t_2^*/x]t_1^*}{\infer[\textit{IH}]{t_1 \Pred t_1^*}{\ } & \infer[\textit{IH}]{t_2 \Pred t_2^*}{\ }}
-\]
-\noindent Similarly to the previous case, this is the desired conclusion, because $((\lam{x}{t_1})\ t_2)^*$ equals
-$[t_2^*/x]t_1^*$, from the fourth equation of Figure~\ref{fig:pred}.
-
-\case{ } $t$ is a $\lambda$-abstraction $\lam{x}{t_1}$ for some $x$ and $t_1$. Then we construct:
-\[
-\infer{\lam{x}{t_1} \Pred \lam{x}{t_1^*}}{\infer[\textit{IH}]{t_1 \Pred t_1^*}{\ }}
-\]
-\end{proof}
-
 \section{Exercises}
 
 \subsection{Confluent terms}
@@ -591,7 +526,34 @@ this is optional.
   \end{array}
   \]
 
+\item This problem uses just $\curva_\alpha$ steps:
+
+\[
+  \begin{array}{lll}
+    t: & \ &   \lam{x}{\lam{y}{x\ \lam{z}{y}}}\\
+    t_1: & \ & \lam{x}{\lam{z}{x\ \lam{y}{z}}} \\
+    t_2: & \ & \lam{y}{\lam{z}{y\ \lam{y}{z}}}
+  \end{array}
+  \]
+
 \end{enumerate}
+
+\subsection{Confluence}
+
+\begin{itemize}
+  \item Because of our explicit treatment of variable-renaming, single-step $\beta$-reduction with renaming
+     ($\betaa$, Definition~\ref{def:betaa}) is not
+    confluent. To show this, give an example of a term $t$ and
+    distinct normal forms $t_1$ and $t_2$ where $t \curva^* t_1$ and
+    $t \curva^* t_2$.
+
+  \item For each of the following relations, argue briefly why it does or does not have the diamond property:
+    \begin{itemize}
+    \item $\alpha$ (Figure~\ref{fig:barealpha})
+    \item $\beta$ (Figure~\ref{fig:barebeta})
+    \item $\Tau[\alpha]$ (Figure~\ref{fig:compcl})
+    \end{itemize}
+    \end{itemize}
 
 \subsection{Parallel reductions}
 
@@ -617,17 +579,6 @@ this is optional.
 
 \end{enumerate}
 
-\subsection{Maximal parallel contraction}
-    
-\begin{enumerate}
-\item For each of the following terms $t'$, find a term $t$ which is $\alpha$-equivalent to $t'$, and
-  such that the maximal parallel contraction $t^*$ is defined.  Please
-  state both the term $t$ and also $t^*$.  You do not need to write out any calculation of $t^*$, just the term $t^*$ itself.
-  \begin{enumerate}
-  \item $(\lam{x}{\lam{y}{(\lam{z}{z})\ x}})\ \lam{a}{(\lam{y}{y\ a})\ y}$
-  \item $(\lam{x}{\lam{y}{x\ (x\ \lam{z}{y})}})\ \lam{p}{(\lam{q}{q\ \lam{p}{c\ p}})\ p}$
-  \end{enumerate}
-  \end{enumerate}
 
 
 
