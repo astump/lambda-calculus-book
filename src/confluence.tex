@@ -62,6 +62,7 @@ will study in this chapter:
 A property quite similar to confluence of a relation $\to$ is
 the following:
 \begin{definition}[Diamond property]
+\label{def:diamond}
   An element $x$ has the diamond property with respect to relation
   $\to$ on set $A$ iff $x \to y$ and $x \to z$ imply that there exists an element $q$
   with $y \to q$ and $z \to q$. The relation $\to$ itself has the diamond
@@ -328,7 +329,7 @@ Here are some examples of parallel reduction.
 
 \end{enumerate}
 
-\subsection{Properties of parallel reduction}
+\subsection{Basic properties of parallel reduction}
 
 \begin{lemma}
   \label{lem:predrefl}
@@ -483,6 +484,67 @@ Here are some examples of parallel reduction.
           
 \end{proof}
 
+\subsection{Parallel reduction has the diamond property}
+
+In this section, we show $\textit{Diamond}(\Pred^\alpha)$.  In general, the diamond property (Definition~\ref{def:diamond}) for a relation follows from the following stronger property:
+
+\begin{definition}
+  \label{def:triangle}
+  An element $x\in A$ has the triangle property with respect to relation $\to$ on set $A$
+  iff there exists $x'\in A$ such that for every $y \in A$ with $x \to y$, we have $y \to x'$.
+  The relation $\to$ has the triangle
+  property, denoted $\textit{Triangle}(\to)$, iff every element of $A$ has
+  the triangle property with respect to $\to$.  \index{triangle property}
+\end{definition}
+
+\noindent The crucial point here is that for each $a$, there exists an $a'$ independent of the
+elements to which $a$ is related. The triangle property is stronger than the diamond property,
+as is easily seen by a small example:
+
+\begin{example}
+  Suppose $A$ is $\{1,2,3,4,5,6,7\}$, and we have relation $\to$ satisfying exactly these facts:
+  \begin{itemize}
+  \item $1 \to 2$
+  \item $1 \to 3$
+  \item $1 \to 4$
+  \item $2 \to 5$
+  \item $3 \to 5$
+  \item $2 \to 6$
+  \item $4 \to 6$    
+  \item $3 \to 7$
+  \item $4 \to 7$
+  \end{itemize}
+  The element $1$ has the diamond property, because it is related to $2$, $3$, and $4$, which can
+  all be joined.  But since they are joined at different points ($2$ and $3$ at $5$, but $2$ and $4$ at $6$),
+  it does not have the triangle property with respect to $\to$.  To have the triangle property, $1$, $2$, and $3$
+  would all have to be joined at a single point.
+\end{example}
+
+\begin{lemma}
+  \label{lem:tridi}
+  $\textit{Triangle}(\to)$ implies $\textit{Diamond}(\to)$.
+\end{lemma}
+\begin{proof}
+  To prove the diamond property, assume $a$, $b$, and $c$ with
+  $a \to b$ and $a \to c$.  By the triangle property, there exists
+  $a'$ such that $b \to a'$ and $c \to a'$.  (Again, note that
+  the critical point is that this $a'$ is determined solely from
+  $a$, not $b$ or $c$.)  This $a'$ is then the joining element
+  required by the diamond property.
+\end{proof}
+
+
+
+
+
+\begin{theorem}
+  $\textit{Triangle}(\Pred^\alpha)$.
+\end{theorem}
+\begin{proof}
+  Assume $t$, and let $t'$ be any term $\alpha$-equivalent to $t$ but
+  where all bound variables are distinct from each other and the free variables
+  of $t$.  Now
+  \end{proof}
 
 \section{Exercises}
 

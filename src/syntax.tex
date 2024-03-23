@@ -1280,7 +1280,7 @@ $\beta$-reduction with renaming.\index{$\beta$-reduction!with renaming}\index{$\
 A single $\beta$-reduction step with renaming allows one to perform some (possibly zero)
 renamings, then take a $\betar$-step, and then perform another set of renamings.
 We are generally interested in taking multiple steps of $\betaa$, using $\betaa^*$, which
-we will call multi-step $\beta$-reduction with renaming.\index{multi-step $\beta$-reduction with renaming}
+we will call multi-step $\beta$-reduction with renaming.\index{$\beta$-reduction!multi-step with renaming}
 It is often useful to identify a sequence of terms underlying a
 multi-step $\beta$-reduction with renaming, as follows:
 
@@ -1395,6 +1395,32 @@ $\beta$-reduction with renaming:
 \label{def:betaeq}
   We define $\betaeq$ as the equivalence closure of $\betaa$; i.e., $=_{\betaa}$.\index{$\beta$-equivalence}{$\betaeq$}
   \end{definition}
+
+\section{Combinators}
+
+Haskell Curry developed an alternative approach to defining computable functions, without any bound variables.  The
+syntax of these combinators is:
+\[
+\textit{combinators}\ c\  ::= \ S\ |\ K\ |\ x\ |\ c\ c'
+\]
+\noindent where free variables $x$ are included to make it easier to express the translation (below) from $\lambda$-calculus
+to combinators.
+
+The semantics of combinators is given in Figure~\ref{fig:combsem}, where we use the same symbol $\betaa$ as we did for
+$\beta$-reduction with renaming.  Here, though, as there are no bound variables, there is no renaming.
+
+\begin{figure}
+  \[
+  \begin{array}{lllllll}
+    \infer{S\ t_1\ t_2\ t_3\ \betar\ t_1\ t_3\ (t_2\ t_3)}{\ } & \ &
+\infer{K\ t_1\ t_2\ \betar\ t_1}{\ } & \ &    
+\infer{t_1\ t_2\ \betar\ t_1'\ t_2}{t_1\ \betar\ t_1'} &\ &
+\infer{t_1\ t_2\ \betar\ t_1\ t_2'}{t_2\ \betar\ t_2'}
+  \end{array}
+  \]
+  \caption{Inference rules defining the reduction relation for combinators. }
+  \label{fig:combsem}
+\end{figure}
 
 \section{Exercises}
 

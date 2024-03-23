@@ -12,4 +12,4 @@ book.idx: book.tex
 	makeindex book
 
 clean:
-	rm -f book.out *.aux
+	rm -f book.out *.aux *.ind *.bbl 

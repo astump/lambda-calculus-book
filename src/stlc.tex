@@ -80,7 +80,7 @@ Let us see some examples of this semantics for types.
 \label{fig:stlcrealize}
 \end{figure}
 
-\subsection{Examples}
+\subsection{Examples and $\beta$-expansion closure}
 
 Suppose that $B$ consists of two base types, $b$ and $b'$.  Let $I(b)$ be the set of Church-encoded booleans,
 and let $I(b')$ be the set of Church-encoded natural numbers (see Section~\ref{sec:churchenc}).  Then
@@ -111,7 +111,7 @@ want $I(b)$ to be closed under $\beta$-expansion (Definition~\ref{def:betaexpand
 
 \begin{definition}[$\beta$-expansion closed]
   A set $S$ of terms is $\beta$-expansion closed if $t\in S$ and $t'
-  \leadsto t$ imply $t' \in S$.
+  \leadsto t$ imply $t' \in S$. \index{$\beta$-expansion closed}
 \end{definition}
 
 Such a set is closed under $\beta$-expansion in the sense that one cannot leave the
@@ -145,9 +145,74 @@ respectively.  But now we can obtain some other interesting facts:
   \[
   \textit{not}\ t' \ \leadsto^*\  \textit{not}\ \textit{false}\ \leadsto^*\ \textit{true}
   \]
+
+\item Let us define this function:
+  \[
+  \textit{even}\ :=\ \lam{x}{x\ \textit{not}\ \textit{true}}
+  \]
+  \noindent Given a Church-encoded natural number $n$, this function iterates boolean negation
+  $n$ times starting with \textit{true}.  This will result in \textit{true} iff $n$ is indeed even.
+  Let us prove that $\textit{even} \in \interp{b' \to b}$.  Assume $t\in\interp{b'}$ and show $\textit{even}\ t \in \interp{b}$.
+  Since $t\in\interp{b'}$, there is some natural number $n$ such that
+  \[
+  t \betaa^* \lam{f}{\lam{x}{\underbrace{f\ \cdots\ (f}_n\ x)}}
+  \]
+  \noindent Then we have
+  \[
+  \textit{even}\ t\ \betaeq\ t\ \textit{not}\ \textit{true}\ \betaeq\ \underbrace{\textit{not}\ \cdots\ (\textit{not}}_n\ \textit{true})
+  \]
+  \noindent We may easily prove that the latter term is $\beta$-equivalent to \textit{true} if $n$ is even, and to \textit{false} if $n$ is odd.
+
 \end{itemize}
 
-\todo{more examples}
+\subsection{Examples with sets of normalizing terms}
+
+Recall that the notation $t \downarrow$
+(Definition~\ref{def:normalizing}) means that term $t$ is normalizing:
+there exists some $t'$ such that $t\betaa^* t'$ and $t'$ is in normal
+form (i.e., does not reduce to any term).
+
+\begin{definition}
+  Let $\normterms$ be $\{ t\ |\ t \downarrow \}$.\index{$\mathcal{N}$}
+\end{definition}
+
+Suppose there is a base type $b\in B$, and define $I(b)$ to be $\normterms$.  Then we have:
+
+\begin{itemize}
+\item $\lam{x}{\lam{y}{x}} \in \interp{b \to b}$.  To prove this, it suffices by the semantics
+  of arrow types to assume $t'\in \interp{b}$, and
+  show $(\lam{x}{\lam{y}{x}})\ t' \in \interp{b}$.  Since $\interp{b} = I(b) = \normterms$,
+  we are assuming $t' \downarrow$, and need to show $(\lam{x}{\lam{y}{x}})\ t'\downarrow$.
+  For the latter:
+  \[
+  \underline{(\lam{x}{\lam{y}{x}})\ t'} \leadsto \lam{y}{t'}
+  \]
+  \noindent and the latter is normalizing since $t'$ is.
+
+\item Also, $\lam{x}{\lam{y}{x}} \in \interp{b}$, since $\lam{x}{\lam{y}{x}}$ is in normal
+  form (and hence normalizing).
+
+\end{itemize}
+
+With this example, the same term is in $\interp{b}$ and $\interp{b \to b}$.  Here is an example (with the same interpretation $I$ for the base type $b$) where we have a term in $\interp{b}$ that is not in $\interp{b \to b}$:
+\begin{itemize}
+\item $\lam{x}{x\ x} \in \interp{b}$, since $\lam{x}{x\ x}$ is in normal form.
+\item But $\lam{x}{x\ x} \not\in \interp{b \to b}$.  To prove that, we must exhibit $t \in \interp{b}$ such
+  that $(\lam{x}{x\ x})\ t$ is not in $\interp{b}$.  We may use $\lam{x}{x\ x}$ for that $t$, because
+  we just observed that it is in $\interp{b}$, but $(\lam{x}{x\ x})\ (\lam{x}{x\ x})$ (i.e., the term $\Omega$) is definitely
+  not in $\interp{b}$, since $\Omega$ is not normalizing.
+\end{itemize}
+
+Now let us change the interpretation $I(b)$ to be $\{ t \ |\ t \betaa^* \lam{x}{x}\}$.  Then we
+have an example opposite to the one we just found: a term in $\interp{b\to b}$ that is not in $\interp{b}$.
+The term is again $\lam{x}{x\ x}$.  This term does not reduce to $\lam{x}{x}$, and so it is not in $\interp{b}$.
+But it is in $\interp{b \to b}$.  To show that, assume $t\in\interp{b}$, and show $(\lam{x}{x\ x})\ t\in\interp{b}$.
+Since $t\in\interp{b}$, we have $t\betaa^*\lam{x}{x}$.  Then we have the following reduction confirming
+that the starting term is in $\interp{b}$:
+\[
+(\lam{x}{x\ x})\ \underline{t} \leadsto^* \underline{(\lam{x}{x\ x})\ \lam{x}{x}} \leadsto \underline{(\lam{x}{x})\ \lam{x}{x}} \leadsto \lam{x}{x}
+\]
+
 
 \section{Type assignment rules}
 
@@ -254,8 +319,8 @@ $\lam{x}{\lam{y}{y}}$, \textit{id} for $\lam{x}{x}$, and $\Omega$ for
 the diverging term $(\lam{x}{x\ x})\ \lam{x}{x\ x}$.
 \[
 \begin{array}{lll}
-  I(b) & := & \{ (t,t')\ |\ t =_\beta t' \} \\
-  I(b') & := & \{ (t,t')\ |\ t =_\beta t' =_\beta \textit{false} \}
+  I(b) & := & \{ (t,t')\ |\ t \betaeq t' \} \\
+  I(b') & := & \{ (t,t')\ |\ t \betaeq t' \betaeq \textit{false} \}
 \end{array}
 \]
 \noindent Then we have the following relational facts:
@@ -268,7 +333,7 @@ the diverging term $(\lam{x}{x\ x})\ \lam{x}{x\ x}$.
   $\interp{b}$.  Since $\interp{b} = I(b)$, the latter may be shown this
   way:
   \[
-  (\lam{x}{x\ \Omega})\ t \ =_\beta \  (\lam{x}{x\ \Omega})\ \textit{false} \ =_\beta \ \textit{false}\ \Omega\ =_\beta\ \textit{id} \ =_\beta\ \textit{false}\ \textit{id}\ =_\beta \ (\lam{x}{x\ \textit{id}})\ \textit{false} \ =_\beta \ (\lam{x}{x\ \textit{id}})\ t'
+  (\lam{x}{x\ \Omega})\ t \ \betaeq \  (\lam{x}{x\ \Omega})\ \textit{false} \ \betaeq \ \textit{false}\ \Omega\ \betaeq\ \textit{id} \ \betaeq\ \textit{false}\ \textit{id}\ \betaeq \ (\lam{x}{x\ \textit{id}})\ \textit{false} \ \betaeq \ (\lam{x}{x\ \textit{id}})\ t'
       \]
 
  \item That same pair of terms is not related by $\interp{b \to b}$,
@@ -278,7 +343,7 @@ the diverging term $(\lam{x}{x\ x})\ \lam{x}{x\ x}$.
       are not related by $\interp{b}$.  Take $t$ and $t'$ both to be \textit{id},
       and we have:
      \[
-     (\lam{x}{x\ \Omega})\ t\ =\ (\lam{x}{x\ \Omega})\ \textit{id}\ =_\beta\ \Omega \ \neq_\beta\ \textit{id}\ =_\beta\ (\lam{x}{x\ \textit{id}})\ \textit{id}\ = \ (\lam{x}{x\ \textit{id}})\ t'
+     (\lam{x}{x\ \Omega})\ t\ =\ (\lam{x}{x\ \Omega})\ \textit{id}\ \betaeq\ \Omega \ \neq_\beta\ \textit{id}\ \betaeq\ (\lam{x}{x\ \textit{id}})\ \textit{id}\ = \ (\lam{x}{x\ \textit{id}})\ t'
      \]
      \end{itemize}
 
