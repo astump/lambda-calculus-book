@@ -58,13 +58,13 @@ This idea that a type is a form of specification for programs can be
 made precise for STLC using the recursive definition of
 Figure~\ref{fig:stlcrealize}.  This defines an interpretation $\interp{T}$ for
 any simple type $T$, assuming a function $I$ which interprets the base types of $B$.
-The values computed by the semantic function and $I$ are sets of terms.  So mathematically,
-writing \textit{Types} for the set of all simple types and \textit{Terms} for the set
-of all terms of untyped $\lambda$-calculus (and using the standard notation $\mathcal{P} S$ for
+The values computed by the semantic function and $I$ are sets of closed terms.  So mathematically,
+writing \textit{Types} for the set of all simple types and \textit{ClosedTerms} for the set
+of all closed terms of untyped $\lambda$-calculus (and using the standard notation $\mathcal{P} S$ for
 the set of all subsets of a set $S$), we have:
 \begin{itemize}
-\item $\interp{-} \in \textit{Types} \to \mathcal{P}\ \textit{Terms}$
-\item $I \in B \to \mathcal{P}\ \textit{Terms}$
+\item $\interp{-} \in \textit{Types} \to \mathcal{P}\ \textit{ClosedTerms}$
+\item $I \in B \to \mathcal{P}\ \textit{ClosedTerms}$
 \end{itemize}
 
 Let us see some examples of this semantics for types.
@@ -73,7 +73,7 @@ Let us see some examples of this semantics for types.
 \[
 \begin{array}{lll}
 \interp{b} & = & I(b) \\
-\interp{T_1\to T_2} & = & \{ t\ |\ \all{t' \in \interp{T_1}}{(t\ t') \in\interp{T_2}} \}
+\interp{T_1\to T_2} & = & \{ t\in\textit{ClosedTerms}\ |\ \all{t' \in \interp{T_1}}{(t\ t') \in\interp{T_2}} \}
 \end{array}
 \]
 \caption{Realizability semantics of types, with respect to an assignment $I$ of meanings for base types}
@@ -110,18 +110,17 @@ interpretation function $I$ for the base types.  We will generally
 want $I(b)$ to be closed under $\beta$-expansion (Definition~\ref{def:betaexpand}), in the following sense:
 
 \begin{definition}[$\beta$-expansion closed]
-  A set $S$ of terms is $\beta$-expansion closed if $t\in S$ and $t'
-  \leadsto t$ imply $t' \in S$. \index{$\beta$-expansion closed}
+  A set $S$ of closed terms is $\beta$-expansion closed if $t\in S$ and $t' \leadsto t$ imply $t' \in S$, for closed $t'$. \index{$\beta$-expansion closed}
 \end{definition}
 
 Such a set is closed under $\beta$-expansion in the sense that one cannot leave the
-set by following $\beta$-expansion steps.  So let us try the example again,
-but this time using $\beta$-expansion closed sets for $I(b)$ and $I(b')$,
+set by following $\beta$-expansion steps to closed terms.  So let us try the example again,
+but this time using $\beta$-expansion closed sets (of closed terms) for $I(b)$ and $I(b')$,
 namely:
 \[
 \begin{array}{lll}
-  I(b) & := & \{ t\ |\ t \leadsto^* \mathbb{B}\} \\
-  I(b') & := & \{ t\ |\ t \leadsto^* \mathbb{N}\} 
+  I(b) & := & \{ t\in\textit{ClosedTerms}\ |\ t \leadsto^* \mathbb{B}\} \\
+  I(b') & := & \{ t\in\textit{ClosedTerms}\ |\ t \leadsto^* \mathbb{N}\} 
 \end{array}
 \]
 \noindent Here, for brevity, I am writing $t \leadsto^* S$, where $S$
@@ -135,13 +134,13 @@ $\beta$-expansion closures of the sets of Church-encoded booleans and naturals,
 respectively.  But now we can obtain some other interesting facts:
 \begin{itemize}
 \item $\textit{not}\in\interp{b\to b}$.  To show this, it suffices to
-  assume an arbitrary $t'$ with $t'\leadsto^*\mathbb{B}$, and show
+  assume an arbitrary closed $t'$ with $t'\leadsto^*\mathbb{B}$, and show
   that $\textit{not}\ t'\leadsto^*\mathbb{B}$. Suppose $t'\leadsto^*\textit{true}$.
   Then we have
   \[
   \textit{not}\ t' \ \leadsto^*\  \textit{not}\ \textit{true}\ \leadsto^*\ \textit{false}
   \]
-  \noindent And similarly, if $t'\leadsto^*\textit{false}$, we have
+  \noindent And similarly, if closed $t'\leadsto^*\textit{false}$, we have
   \[
   \textit{not}\ t' \ \leadsto^*\  \textit{not}\ \textit{false}\ \leadsto^*\ \textit{true}
   \]
@@ -165,6 +164,24 @@ respectively.  But now we can obtain some other interesting facts:
 
 \end{itemize}
 
+\begin{lemma}
+\label{lem:betaexpclosed}
+  Suppose $I(b)$ is $\beta$-expansion closed, for all $b\in B$. Then $\interp{T}$ is also $\beta$-expansion closed,
+  for all $T$.
+\end{lemma}
+\begin{proof}
+  The proof is by induction on $T$.  If $T$ is a base type $b$, then
+  $\interp{T} = I(b)$, which is $\beta$-expansion closed by
+  assumption.  So assume $T$ is an arrow type $T_1 \to T_2$, and
+  assume $t\in\interp{T}$, and closed $t'\betaa^* t$.  We must show
+  $t'\in\interp{T}$.  For that, assume $t''\in\interp{T_1}$, and show
+  $t'\ t''\in\interp{T_2}$.  By the induction hypothesis, $\interp{T_2}$
+  is $\beta$-expansion closed.  So to show $t'\ t''\in\interp{T_2}$,
+  it suffices to show that $t\ t''\in\interp{T_2}$, since $t'\ t''$
+  reduces to $t\ t''$ (since $t'\betaa^* t$).  But $t\ t''\in\interp{T_2}$
+  because $t\in\interp{T_1\to T_2}$ by assumption (and $t''\in\interp{T_1}$).
+  \end{proof}
+
 \subsection{Examples with sets of normalizing terms}
 
 Recall that the notation $t \downarrow$
@@ -172,38 +189,35 @@ Recall that the notation $t \downarrow$
 there exists some $t'$ such that $t\betaa^* t'$ and $t'$ is in normal
 form (i.e., does not reduce to any term).
 
-\begin{definition}
-  Let $\normterms$ be $\{ t\ |\ t \downarrow \}$.\index{$\mathcal{N}$}
-\end{definition}
-
-Suppose there is a base type $b\in B$, and define $I(b)$ to be $\normterms$.  Then we have:
+Suppose there is a base type $b\in B$, and define $I(b)$ to be $\{t \in \textit{ClosedTerms}\ |\ t \downarrow\}$.
+Then we have:
 
 \begin{itemize}
 \item $\lam{x}{\lam{y}{x}} \in \interp{b \to b}$.  To prove this, it suffices by the semantics
   of arrow types to assume $t'\in \interp{b}$, and
-  show $(\lam{x}{\lam{y}{x}})\ t' \in \interp{b}$.  Since $\interp{b} = I(b) = \normterms$,
-  we are assuming $t' \downarrow$, and need to show $(\lam{x}{\lam{y}{x}})\ t'\downarrow$.
+  show $(\lam{x}{\lam{y}{x}})\ t' \in \interp{b}$.  Since $\interp{b} = I(b)$,
+  we are assuming closed $t' \downarrow$, and need to show $(\lam{x}{\lam{y}{x}})\ t'\downarrow$.
   For the latter:
   \[
   \underline{(\lam{x}{\lam{y}{x}})\ t'} \leadsto \lam{y}{t'}
   \]
-  \noindent and the latter is normalizing since $t'$ is.
+  \noindent and the latter is normalizing (and closed) since $t'$ is.
 
 \item Also, $\lam{x}{\lam{y}{x}} \in \interp{b}$, since $\lam{x}{\lam{y}{x}}$ is in normal
-  form (and hence normalizing).
+  form (and hence normalizing), and closed.
 
 \end{itemize}
 
 With this example, the same term is in $\interp{b}$ and $\interp{b \to b}$.  Here is an example (with the same interpretation $I$ for the base type $b$) where we have a term in $\interp{b}$ that is not in $\interp{b \to b}$:
 \begin{itemize}
-\item $\lam{x}{x\ x} \in \interp{b}$, since $\lam{x}{x\ x}$ is in normal form.
+\item $\lam{x}{x\ x} \in \interp{b}$, since $\lam{x}{x\ x}$ is in normal form and closed.
 \item But $\lam{x}{x\ x} \not\in \interp{b \to b}$.  To prove that, we must exhibit $t \in \interp{b}$ such
   that $(\lam{x}{x\ x})\ t$ is not in $\interp{b}$.  We may use $\lam{x}{x\ x}$ for that $t$, because
   we just observed that it is in $\interp{b}$, but $(\lam{x}{x\ x})\ (\lam{x}{x\ x})$ (i.e., the term $\Omega$) is definitely
   not in $\interp{b}$, since $\Omega$ is not normalizing.
 \end{itemize}
 
-Now let us change the interpretation $I(b)$ to be $\{ t \ |\ t \betaa^* \lam{x}{x}\}$.  Then we
+Now let us change the interpretation $I(b)$ to be $\{ t \in\textit{ClosedTerms}\ |\ t \betaa^* \lam{x}{x}\}$.  Then we
 have an example opposite to the one we just found: a term in $\interp{b\to b}$ that is not in $\interp{b}$.
 The term is again $\lam{x}{x\ x}$.  This term does not reduce to $\lam{x}{x}$, and so it is not in $\interp{b}$.
 But it is in $\interp{b \to b}$.  To show that, assume $t\in\interp{b}$, and show $(\lam{x}{x\ x})\ t\in\interp{b}$.
@@ -283,7 +297,102 @@ as that elided premise is actually derivable.
 \label{fig:stlcex}
 \end{figure}
 
+\subsection{Soundness with respect to the realizability semantics}
 
+We have given two meanings for types, and it is now time to relate
+them.  In this section, we will prove soundness of the typing rules
+(Figure~\ref{fig:stlctpassign}) with respect to the realizability
+semantics (Figure~\ref{fig:stlcrealize}).
+
+In logic generally, suppose we have two ways of defining the meaning
+of some formulas, via sets $S_1$ and $S_2$ of formulas that are
+considered (by the two semantics respectively) to be true.  Then $S_1$
+is sound with respect to $S_2$ iff $S_1 \subseteq S_2$, and $S_1$ is
+complete with respect to $S_2$ iff $S_2 \subseteq
+S_1$.\index{sound}\index{complete} One way to think about this is as
+if $S_1$ consists of statements made by a person, and $S_2$ consists
+of statements that are true in reality.  Then soundness means that the
+statements the person makes are, in fact, true.  So $S_1$ (the set of
+statements the person makes) is a subset of $S_2$ (the statements that
+are really true).  Completeness is the inverse of this: if a statement
+is really true (i.e., in $S_2$), then the person affirms it (i.e., it
+is in $S_1$).  It is easy to be sound: one affirms nothing.  It is
+also easy to be complete: one affirms everything.  The ideal, which is
+more difficult or even impossible to achieve, depending on the logic,
+is to be both sound and complete.
+
+To consider these properties for STLC, we need to formulate the
+formulas that our two semantics are affirming.  The basic formula for
+typing is $\vdash t : T$.  The corresponding formula for our
+realizability semantics is $t \in \interp{T}$.  But the typing rules
+make use of typing contexts $\Gamma$ and use more general formulas
+$\Gamma \vdash t : T$.  So we will need a corresponding generalization
+of the formulas of our realizability semantics.
+
+\begin{definition}
+  \label{def:substmodels}
+  Define $\interp{\Gamma}$ to be the set of substitutions $\sigma$ such that
+  whenever $\textit{Find}\ x:T\ \textit{in}\ \Gamma$ is derivable (with the rules of Figure~\ref{fig:stlctpassign}),
+  then $\sigma(x) \in \interp{T}$.
+\end{definition}
+
+So $\sigma\in\interp{\Gamma}$ means that the substitution $\sigma$
+maps variables to terms that are in the interpretations of the types
+that $\Gamma$ says they have.  Let $\sigma\ t$ denote the 
+application of the substitution $\sigma$ to $t$, with definition
+given in Figure~\ref{fig:substsigma}.  Since we are assuming that the
+range of $\sigma$ consists of closed terms (since $\interp{T}$ is a set
+of closed terms for every $T$), we do not need to worry
+about variable capture: none is possible.
+
+\begin{theorem}
+  \label{thm:sltcsnd}
+  If $\Gamma\vdash t : T$, then for every $\sigma\in\interp{\Gamma}$, $\sigma\, t \in \interp{T}$,
+  for all interpretations $I$ where $I(b)$ is $\beta$-expansion closed.
+\end{theorem}
+\begin{proof}
+  The proof is by induction on the typing derivation.
+
+  \case{ }
+\[  \infer{\Gamma\vdash x : T}{\textit{Find}\ x:T\ \textit{in}\ \Gamma} 
+\]
+Assume $\sigma \in \interp{\Gamma}$.  By definition of the interpretation
+of $\Gamma$, this means that $\sigma(x) \in\interp{T}$, and hence $\sigma\,x$, which equals $\sigma(x)$,
+is in $\interp{T}$ as required.
+
+  \case{ }
+\[  \infer{\Gamma\vdash \lam{x}{t} : T' \to T}
+      {\Gamma,x:T'\vdash t:T}
+\]
+Assume $\sigma\in\interp{\Gamma}$.  To show $\sigma\,\lam{x}{t}\in\interp{T'\to T}$, it suffices
+by the definition of substitution and the semantics of arrow types to assume $t'\in\interp{T'}$,
+and show that $(\lam{x}{\sigma\, t})\ t'$ is in $\interp{T}$.  Since $\interp{T}$ is $\beta$-expansion closed
+by Lemma~\ref{lem:betaexpclosed}, it suffices to show $[t'/x]\sigma\, t\in\interp{T}$.
+
+Let $\sigma'$ be the same as $\sigma$ except that $x$ is mapped to $t'$.
+Then $\sigma'\in\interp{\Gamma,x:T'}$, since $\sigma'(x)\in\interp{T}$.  The desired conclusion
+now follows directly by the induction hypothesis.
+\end{proof}
+
+\begin{figure}
+  \[
+  \begin{array}{lll}
+    \sigma\, x & = & \left\{\begin{array}{ll}
+                           \sigma(x),\textnormal{ if }x\in\textit{dom}(\sigma) \\
+                           x,\textnormal{ otherwise}
+                           \end{array} \right. \\
+    \sigma\, (t_1\ t_2) & = & (\sigma\, t_1)\ (\sigma\, t_2) \\
+    \sigma\, (\lam{x}{t}) & = & \lam{x}{((\sigma \backslash x)\, t)}
+  \end{array}
+  \]
+  \caption{Applying a substitution of closed terms (thus avoiding danger of variable capture).
+    $\sigma \backslash x$ is the function that is just like $\sigma$ except that it does not
+  map $x$ to anything.}
+  
+\label{fig:substsigma}
+\end{figure}
+
+ 
 \section{Relational semantics}
 
 Realizability semantics (Section~\ref{sec:stlcrealizability})

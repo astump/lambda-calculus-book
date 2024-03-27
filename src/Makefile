@@ -1,4 +1,4 @@
-book.pdf:	book.tex definitions.tex book.idx Makefile \
+book.pdf:	book.tex definitions.tex book.idx book.ind Makefile \
 		syntax.tex programming.tex confluence.tex stlc.tex introduction.tex
 	rm -f book.aux
 	pdflatex book
@@ -9,7 +9,11 @@ book.pdf:	book.tex definitions.tex book.idx Makefile \
 	cp book.pdf ..
 
 book.idx: book.tex
+	pdflatex book
+	makeindex book
+
+book.ind: book.tex
 	makeindex book
 
 clean:
-	rm -f book.out *.aux *.ind *.bbl 
+	rm -f book.out *.aux *.ind *.bbl *.log  book.toc
