@@ -55,9 +55,24 @@ it terminates normally (without raising an exception, diverging,
 etc.), then it will return an integer as output.
 
 This idea that a type is a form of specification for programs can be
-made precise for STLC using the recursive definition of
-Figure~\ref{fig:stlcrealize}.  This defines an interpretation $\interp{T}$ for
-any simple type $T$, assuming a function $I$ which interprets the base types of $B$.
+made precise for STLC using a form of \emph{realizability semantics}\index{realizability}.  This semantics
+was introduced by Kleene for intuitionistic arithmetic~\cite{kleene45}.  To explain
+this further, we first need this notion:
+
+\begin{definition}[$\beta$-expansion closed]
+  A set $S$ of closed terms is $\beta$-expansion closed if $t\in S$ and $t' \leadsto t$ imply $t' \in S$, for closed $t'$. \index{$\beta$-expansion closed}
+\end{definition}
+
+\noindent Such a set $S$ is closed under $\beta$-expansion in the
+sense that one cannot leave $S$ by following $\beta$-expansion steps
+to closed terms.
+
+Figure~\ref{fig:stlcrealize} defines an interpretation $\interp{T}$
+for any simple type $T$, assuming a function $I$ which interprets the
+base types of $B$.  We require that $I(b)$ is a $\beta$-expansion
+closed set, for every $b\in B$.
+
+
 The values computed by the semantic function and $I$ are sets of closed terms.  So mathematically,
 writing \textit{Types} for the set of all simple types and \textit{ClosedTerms} for the set
 of all closed terms of untyped $\lambda$-calculus (and using the standard notation $\mathcal{P} S$ for
@@ -67,7 +82,25 @@ the set of all subsets of a set $S$), we have:
 \item $I \in B \to \mathcal{P}\ \textit{ClosedTerms}$
 \end{itemize}
 
-Let us see some examples of this semantics for types.
+\noindent Given that $I(b)$ is required to be $\beta$-expansion closed, we have:
+
+\begin{lemma}
+\label{lem:betaexpclosed}
+  $\interp{T}$ is $\beta$-expansion closed,
+  for all $T$.
+\end{lemma}
+\begin{proof}
+  The proof is by induction on $T$.  If $T$ is a base type $b$, then
+  $\interp{T} = I(b)$, which is $\beta$-expansion closed by
+  assumption.  So assume $T$ is an arrow type $T_1 \to T_2$, and
+  assume $t\in\interp{T}$, and closed $t'\betaa^* t$.  We must show
+  $t'\in\interp{T}$.  For that, assume $t''\in\interp{T_1}$, and show
+  $t'\ t''\in\interp{T_2}$.  By the induction hypothesis, $\interp{T_2}$
+  is $\beta$-expansion closed.  So to show $t'\ t''\in\interp{T_2}$,
+  it suffices to show that $t\ t''\in\interp{T_2}$, since $t'\ t''$
+  reduces to $t\ t''$ (since $t'\betaa^* t$).  But $t\ t''\in\interp{T_2}$
+  because $t\in\interp{T_1\to T_2}$ by assumption (and $t''\in\interp{T_1}$).
+  \end{proof}
 
 \begin{figure}
 \[
@@ -80,60 +113,51 @@ Let us see some examples of this semantics for types.
 \label{fig:stlcrealize}
 \end{figure}
 
-\subsection{Examples and $\beta$-expansion closure}
+Recall that the notation $t \downarrow$
+(Definition~\ref{def:normalizing}) means that term $t$ is normalizing:
+there exists some $t'$ such that $t\betaa^* t'$ and $t'$ is in normal
+form (i.e., does not reduce to any term).
 
-Suppose that $B$ consists of two base types, $b$ and $b'$.  Let $I(b)$ be the set of Church-encoded booleans,
-and let $I(b')$ be the set of Church-encoded natural numbers (see Section~\ref{sec:churchenc}).  Then
-certainly we have the following:
-\begin{itemize}
-\item $\textit{true}\in\interp{b}$
-\item $0\in\interp{b'}$
-\item $\textit{true}\not\in\interp{b'}$
-\end{itemize}
-
-\noindent This looks promising.  But we would expect that with this definition, the negation
-function (\textit{not}, of Section~\ref{sec:bool}) on Church-encoded booleans
-would be in $\interp{b\to b}$.  But it is not!  The reason is that
-\[
-\textit{not}\in\interp{b \to b}
-\]
-\noindent is equivalent, by the second equation of Figure~\ref{fig:stlcrealize}, to
-\[
-\all{t'\in\interp{b}}{(\textit{not}\ t')\in\interp{b}}
-\]
-\noindent But $\interp{b}$ does not contain any applications, so it
-cannot contain $\textit{not}\ t'$ (since this is an application) for
-any $t'$.
-
-The problem here is not in the semantics, but rather the choice of
-interpretation function $I$ for the base types.  We will generally
-want $I(b)$ to be closed under $\beta$-expansion (Definition~\ref{def:betaexpand}), in the following sense:
-
-\begin{definition}[$\beta$-expansion closed]
-  A set $S$ of closed terms is $\beta$-expansion closed if $t\in S$ and $t' \leadsto t$ imply $t' \in S$, for closed $t'$. \index{$\beta$-expansion closed}
+\begin{definition}
+\label{def:normterms}
+  Define $\mathcal{N}$ to be $\{t \in \textit{ClosedTerms}\ |\ t \downarrow\}$.
 \end{definition}
 
-Such a set is closed under $\beta$-expansion in the sense that one cannot leave the
-set by following $\beta$-expansion steps to closed terms.  So let us try the example again,
-but this time using $\beta$-expansion closed sets (of closed terms) for $I(b)$ and $I(b')$,
-namely:
+\begin{lemma}
+\label{lem:norminterp}
+  If $I(b) = \mathcal{N}$ for all $b\in B$, then $\interp{T}$ is non-empty and a subset of $\mathcal{N}$ for
+  all $T$.
+\end{lemma}
+\begin{proof}
+  The proof is by induction on $T$.  For the base case, suppose $T$ is
+  some $b\in B$.  Then $\interp{T} = \interp{b} = I(b) = \mathcal{N}$.
+  And this set contains an element, for example $\lam{x}{x}$.  For the
+  step case, suppose $T$ is a function type $T_1 \to T_2$, and assume
+  $t\in\interp{T}$.  We must show $t\downarrow$.  Since $\interp{T_1}$ is
+  non-empty by induction hypothesis, we may select some $t'\in\interp{T_1}$.
+  Then by the semantics of arrow types, $t\ t'\in\interp{T_2}$.  By the induction
+  hypothesis (for $T_2$), this implies that $t\ t'\downarrow$.  In turn, this
+  implies $t\downarrow$ (proof omitted). % FIXME
+  For an element of $\interp{T_1\to T_2}$, there exists $t\in\interp{T_2}$ by
+  the induction hypothesis.  We then have $\lam{x}{t}\in\interp{T_1\to T_2}$,
+  by the semantics of arrow types. 
+\end{proof}   
+
+\subsection{Examples}
+
+Let us see some examples of the semantics.  Suppose that $B$ consists of two base types, $b$ and $b'$.  
+Let us write $\mathbb{B}$ for the set of
+Church-encoded booleans (Section~\ref{sec:churchenc}), and $\mathbb{N}$ for the set of
+Church-encoded natural numbers.  Then define $I$ by:
 \[
 \begin{array}{lll}
-  I(b) & := & \{ t\in\textit{ClosedTerms}\ |\ t \leadsto^* \mathbb{B}\} \\
-  I(b') & := & \{ t\in\textit{ClosedTerms}\ |\ t \leadsto^* \mathbb{N}\} 
+  I(b) & := & \{ t\in\textit{ClosedTerms}\ |\ \exists\ b\in\mathbb{B}.\ t \leadsto^* b\} \\
+  I(b') & := & \{ t\in\textit{ClosedTerms}\ |\ \exists\ n\in\mathbb{N}.\ t \leadsto^* n\} 
 \end{array}
 \]
-\noindent Here, for brevity, I am writing $t \leadsto^* S$, where $S$
-is a set of terms, to mean that there exists $t'\in S$ such that
-$t\leadsto^* t'$.  I am also writing $\mathbb{B}$ for the set of
-Church-encoded booleans, and $\mathbb{N}$ for the set of
-Church-encoded natural numbers.
+\noindent
 
-The facts about meanings of types that we found above still hold for the
-$\beta$-expansion closures of the sets of Church-encoded booleans and naturals,
-respectively.  But now we can obtain some other interesting facts:
-\begin{itemize}
-\item $\textit{not}\in\interp{b\to b}$.  To show this, it suffices to
+\textbf{Example.} First, we can observe that $\textit{not}\in\interp{b\to b}$.  To show this, it suffices to
   assume an arbitrary closed $t'$ with $t'\leadsto^*\mathbb{B}$, and show
   that $\textit{not}\ t'\leadsto^*\mathbb{B}$. Suppose $t'\leadsto^*\textit{true}$.
   Then we have
@@ -145,7 +169,7 @@ respectively.  But now we can obtain some other interesting facts:
   \textit{not}\ t' \ \leadsto^*\  \textit{not}\ \textit{false}\ \leadsto^*\ \textit{true}
   \]
 
-\item Let us define this function:
+\textbf{Example.} Next, let us define this function:
   \[
   \textit{even}\ :=\ \lam{x}{x\ \textit{not}\ \textit{true}}
   \]
@@ -162,38 +186,10 @@ respectively.  But now we can obtain some other interesting facts:
   \]
   \noindent We may easily prove that the latter term is $\beta$-equivalent to \textit{true} if $n$ is even, and to \textit{false} if $n$ is odd.
 
-\end{itemize}
 
-\begin{lemma}
-\label{lem:betaexpclosed}
-  Suppose $I(b)$ is $\beta$-expansion closed, for all $b\in B$. Then $\interp{T}$ is also $\beta$-expansion closed,
-  for all $T$.
-\end{lemma}
-\begin{proof}
-  The proof is by induction on $T$.  If $T$ is a base type $b$, then
-  $\interp{T} = I(b)$, which is $\beta$-expansion closed by
-  assumption.  So assume $T$ is an arrow type $T_1 \to T_2$, and
-  assume $t\in\interp{T}$, and closed $t'\betaa^* t$.  We must show
-  $t'\in\interp{T}$.  For that, assume $t''\in\interp{T_1}$, and show
-  $t'\ t''\in\interp{T_2}$.  By the induction hypothesis, $\interp{T_2}$
-  is $\beta$-expansion closed.  So to show $t'\ t''\in\interp{T_2}$,
-  it suffices to show that $t\ t''\in\interp{T_2}$, since $t'\ t''$
-  reduces to $t\ t''$ (since $t'\betaa^* t$).  But $t\ t''\in\interp{T_2}$
-  because $t\in\interp{T_1\to T_2}$ by assumption (and $t''\in\interp{T_1}$).
-  \end{proof}
 
-\subsection{Examples with sets of normalizing terms}
-
-Recall that the notation $t \downarrow$
-(Definition~\ref{def:normalizing}) means that term $t$ is normalizing:
-there exists some $t'$ such that $t\betaa^* t'$ and $t'$ is in normal
-form (i.e., does not reduce to any term).
-
-Suppose there is a base type $b\in B$, and define $I(b)$ to be $\{t \in \textit{ClosedTerms}\ |\ t \downarrow\}$.
-Then we have:
-
-\begin{itemize}
-\item $\lam{x}{\lam{y}{x}} \in \interp{b \to b}$.  To prove this, it suffices by the semantics
+\textbf{Example.} Suppose there is a base type $b\in B$, and define $I(b)$ to be $\mathcal{N}$.
+Then  $\lam{x}{\lam{y}{x}} \in \interp{b \to b}$.  To prove this, it suffices by the semantics
   of arrow types to assume $t'\in \interp{b}$, and
   show $(\lam{x}{\lam{y}{x}})\ t' \in \interp{b}$.  Since $\interp{b} = I(b)$,
   we are assuming closed $t' \downarrow$, and need to show $(\lam{x}{\lam{y}{x}})\ t'\downarrow$.
@@ -201,23 +197,19 @@ Then we have:
   \[
   \underline{(\lam{x}{\lam{y}{x}})\ t'} \leadsto \lam{y}{t'}
   \]
-  \noindent and the latter is normalizing (and closed) since $t'$ is.
+  \noindent and the latter is normalizing (and closed) since $t'$ is. Also, $\lam{x}{\lam{y}{x}} \in \interp{b}$, since $\lam{x}{\lam{y}{x}}$ is in normal
+  form (and hence normalizing), and closed. With this example, the same term is in $\interp{b}$ and $\interp{b \to b}$.
+  Let us next consider an example (with the same interpretation $I$ for the base type $b$) where we have a term in $\interp{b}$ that is not in $\interp{b \to b}$.
 
-\item Also, $\lam{x}{\lam{y}{x}} \in \interp{b}$, since $\lam{x}{\lam{y}{x}}$ is in normal
-  form (and hence normalizing), and closed.
-
-\end{itemize}
-
-With this example, the same term is in $\interp{b}$ and $\interp{b \to b}$.  Here is an example (with the same interpretation $I$ for the base type $b$) where we have a term in $\interp{b}$ that is not in $\interp{b \to b}$:
-\begin{itemize}
-\item $\lam{x}{x\ x} \in \interp{b}$, since $\lam{x}{x\ x}$ is in normal form and closed.
-\item But $\lam{x}{x\ x} \not\in \interp{b \to b}$.  To prove that, we must exhibit $t \in \interp{b}$ such
+  \textbf{Example.} We have
+ $\lam{x}{x\ x} \in \interp{b}$, since $\lam{x}{x\ x}$ is in normal form and closed.
+ But $\lam{x}{x\ x} \not\in \interp{b \to b}$.  To prove that, we must exhibit $t \in \interp{b}$ such
   that $(\lam{x}{x\ x})\ t$ is not in $\interp{b}$.  We may use $\lam{x}{x\ x}$ for that $t$, because
   we just observed that it is in $\interp{b}$, but $(\lam{x}{x\ x})\ (\lam{x}{x\ x})$ (i.e., the term $\Omega$) is definitely
   not in $\interp{b}$, since $\Omega$ is not normalizing.
-\end{itemize}
 
-Now let us change the interpretation $I(b)$ to be $\{ t \in\textit{ClosedTerms}\ |\ t \betaa^* \lam{x}{x}\}$.  Then we
+
+\textbf{Example.} Finally, let us change the interpretation $I(b)$ to be $\{ t \in\textit{ClosedTerms}\ |\ t \betaa^* \lam{x}{x}\}$.  Then we
 have an example opposite to the one we just found: a term in $\interp{b\to b}$ that is not in $\interp{b}$.
 The term is again $\lam{x}{x\ x}$.  This term does not reduce to $\lam{x}{x}$, and so it is not in $\interp{b}$.
 But it is in $\interp{b \to b}$.  To show that, assume $t\in\interp{b}$, and show $(\lam{x}{x\ x})\ t\in\interp{b}$.
@@ -346,7 +338,7 @@ of closed terms for every $T$), we do not need to worry
 about variable capture: none is possible.
 
 \begin{theorem}
-  \label{thm:sltcsnd}
+  \label{thm:stlcsnd}
   If $\Gamma\vdash t : T$, then for every $\sigma\in\interp{\Gamma}$, $\sigma\, t \in \interp{T}$,
   for all interpretations $I$ where $I(b)$ is $\beta$-expansion closed.
 \end{theorem}
@@ -392,6 +384,13 @@ now follows directly by the induction hypothesis.
 \label{fig:substsigma}
 \end{figure}
 
+\begin{corollary}
+If $\Gamma\vdash t : T$, then $t \downarrow$.
+\end{corollary}
+\begin{proof} Let $I(b) = \mathcal{N}$ (Definition~\ref{def:normterms}).  Then by Theorem~\ref{thm:stlcsnd},
+  for any $\sigma\in\interp{\Gamma}$, we have $\sigma t \in \interp{T}$.  By Lemma~\ref{lem:norminterp},
+  $\interp{T}\subseteq \mathcal{N}$, so $\sigma t\downarrow$.  This implies $t\downarrow$ (proof omitted). % FIXME
+  \end{proof}
  
 \section{Relational semantics}
 

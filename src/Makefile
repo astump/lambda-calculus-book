@@ -7,6 +7,7 @@ book.pdf:	book.tex definitions.tex book.idx book.ind Makefile \
 	pdflatex book
 	pdflatex book
 	cp book.pdf ..
+	grep FIXME *.tex
 
 book.idx: book.tex
 	pdflatex book
