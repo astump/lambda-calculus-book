@@ -551,12 +551,12 @@ $\lam{x}{\lam{y}{x\ y\ y}}$.
 \begin{enumerate}
   
 \item Suppose $B$ is $\{ b_1, b_2, b_3\}$, and define $I$, recalling
-  from Definition~\ref{def:betanf} that $t\not\betaa$ means that $t$
-  is a $\betaa$-normal form:
+  from Definition~\ref{def:normalizing} that $t\downarrow$ means that $t$
+  is normalizing:
 \begin{eqnarray*}
 I(b_1) & = & \{\ t\ |\ \exists t'.\ t\ \betaa^*\ t'\ \betaa\ t'\ \} \\
-I(b_2) & = & \{\ t\ |\ \exists t'.\ t \betaa^*\ t'\ \not\betaa \} \\
-I(b_3) & = & \{\ t\ |\ \exists t'.\ t \betaa^*\ t'\ \leadsto\ \lam{x}{x} \} \\
+I(b_2) & = & \{\ t\ |\ t \downarrow \} \\
+I(b_3) & = & \{\ t\ |\ t \betaa^*\ \lam{x}{x} \} \\
 \end{eqnarray*}
 
 \noindent Also, define the term $t$ as follows:
