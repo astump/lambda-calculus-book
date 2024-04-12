@@ -392,6 +392,26 @@ If $\Gamma\vdash t : T$, then $t \downarrow$.
   $\interp{T}\subseteq \mathcal{N}$, so $\sigma t\downarrow$.  This implies $t\downarrow$ (proof omitted). % FIXME
   \end{proof}
  
+\section{Normalization using a well-founded ordering}
+
+In the previous section, we proved normalization for simply typed
+terms as a corollary of soundness of the typing rules with respect to
+our realizability semantics.  We can give an interpretation
+for base types under which $\interp{T}$ is a set of normalizing
+terms, and then soundness (Theorem~\ref{thm:stlcsnd}) does the rest.
+This semantic approach is a powerful way to prove normalization for
+other type systems, and indeed, once the type systems are powerful
+enough, it is essentially the only known way to obtain that result.
+
+In this section, we pursue a different approach, in which we compute a
+measure for terms, and then show that we can always reduce a
+non-normal term in a way that reduces the corresponding measure.
+So we are showing that we can reduce terms in a way that makes this
+measure smaller.  And the measure assigned to each term comes from
+a well-founded set, so it cannot decrease forever.  Thus, each
+term has a finite reduction sequence.
+
+
 \section{Relational semantics}
 
 Realizability semantics (Section~\ref{sec:stlcrealizability})
@@ -520,7 +540,7 @@ rule of Figure~\ref{fig:minimpl}).  Does this mean the correspondence
 with the STLC derivation is somehow awry?  Not at all.  For we could
 just as well derive $\cdot \vdash \lam{x}{\lam{y}{y}} : (b \to b \to
 b) \to b \to b$ in STLC.  The structure of the shorter proof in
-minimial implicational logic exactly mirrors this simpler lambda term.
+minimal implicational logic exactly mirrors this simpler lambda term.
 
 Where one may be content to have proved a theorem without minding
 too much the details of the proof, in typed lambda calculus the term
@@ -614,5 +634,5 @@ t\ =\ \lam{f}{(\lam{x}{x\ x})\ (f\ \lam{x}{x\ x})}
 \subsection{Curry-Howard isomorphism}
 
 \begin{enumerate}
-\item Translate the typing derivations you did in Section~\ref{sec:stlcextp} above, into proofs in miminal implicational logic.
+\item Translate the typing derivations you did in Section~\ref{sec:stlcextp} above, into proofs in minimal implicational logic.
   \end{enumerate}
