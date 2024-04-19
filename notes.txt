@@ -1,0 +1,40 @@
+STLC chapter:
+
+-- add examples of arithmetic terms that are typable in STLC
+
+   1. observe that for all types T, add and mult both have types
+
+      Nat[T] -> Nat[T] -> Nat[T]
+
+      where Nat[T] = (T -> T) -> T -> T
+
+      (See week12 and week13 notes)
+
+   2. observe that exp, defined as \ x . \ y . y x,
+      has type
+
+      Nat[T -> T] -> Nat[T] -> Nat[T]
+
+   3. Self-exponentiation, \ x . x x, is not typable.
+
+-- In System F, add more arithmetic terms, including exponentiation
+   and self-exponentiation, which is typable.
+
+-- question: when does reduction of simply typed terms require
+   renaming?  The example we saw in class where renaming is
+   required is for an untyped term, namely
+
+      delta app ->
+      app app =
+      (\ x . \ y . x y) app ->
+      \ y . app y = 
+      \ y . (\ x . \ y . x y) y -alpha>
+      \ y . (\ x . \ z . x z) y ->
+      \ y . \ z . y z
+
+   delta is not simply typable, so this example does not hold
+   for STLC.
+
+-- a related question: does hereditary substitution starting with
+   a term with all bound variables distinct and different from the
+   free variables need renaming?
