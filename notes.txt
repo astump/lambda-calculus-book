@@ -17,8 +17,17 @@ STLC chapter:
 
    3. Self-exponentiation, \ x . x x, is not typable.
 
--- In System F, add more arithmetic terms, including exponentiation
+System F (needs its own chapter):
+
+-- show typing of arithmetic terms, including exponentiation
    and self-exponentiation, which is typable.
+
+-- rework semantics of types from the old note on normalization for system F,
+   so that the set \mathcal{R} is not built into the semantics, but a
+   parameter of the semantics
+
+======================================================================
+
 
 -- question: when does reduction of simply typed terms require
    renaming?  The example we saw in class where renaming is
