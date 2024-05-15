@@ -180,8 +180,8 @@ side of the valley.  This example shows:
 \end{theorem}
 
 It is the beautiful observation at the heart of the Tait--Martin-L\"of proof of confluence that
-while $\beta$-reduction lacks the diamond property, still another relation $\Pred^\alpha$ can be defined which
-satisfies the diamond property, and where $(\Pred^\alpha)^* = \betaa^*$.  This will lead us to our goal,
+while $\beta$-reduction lacks the diamond property, still another relation $\Pred$ can be defined which
+satisfies the diamond property, and where $\Pred^* = \betaa^*$.  This will lead us to our goal,
 thanks to the following theorem:
 \begin{theorem}
   \label{thm:tml}
@@ -190,8 +190,7 @@ thanks to the following theorem:
 \end{theorem}
 
 \begin{proof}
-  Confluence
-  of $S$, is equivalent to $\textit{Diamond}(S^*)$.  Since $R^* = S^*$ by assumption, it suffices
+  Confluence of $S$ is equivalent to $\textit{Diamond}(S^*)$.  Since $R^* = S^*$ by assumption, it suffices
   then to prove $\textit{Diamond}(R^*)$.  By Theorem~\ref{thm:stardia}, this follows
   from $\textit{Diamond}(R)$, which we have by assumption.
 \end{proof}
@@ -208,7 +207,7 @@ Actually, the task of confluence is made even easier by observing the following:
 
 \noindent So to use Theorem~\ref{thm:tml}, by this lemma, we just need to identify some relation
 intermediate between $\abeta$ and $\abeta^*$, which satisfies the diamond property.  This relation
-is $\Pred^\alpha$, defined next.
+is $\Pred$, defined next.
 
 \begin{figure}
 
@@ -235,23 +234,27 @@ is $\Pred^\alpha$, defined next.
 
 \section{Parallel reduction}
 
-In this section, we define a relation $\Pred^\alpha$ for parallel reduction with renaming\index{parallel reduction}\index{$\Pred^\alpha$}.  This relation will be the desired
-intermediate relation between $\abeta$ and $\abeta^*$, with the diamond property.  $\Pred$ is defined
-by the rules of Figure~\ref{fig:pred} (i.e., $\Pred$ is the set of pairs $(t,t')$ such that $t\ \Pred\ t'$ has a finite
-derivation using those rules).  It allows reduction, in a single step, of any subset of the redexes of the first related term,
-to obtain the second.  One could reduce a single redex, several redexes (even nested ones), or no redexes at all.
+In this section, we define a relation $\Pred$ for parallel
+reduction\index{parallel reduction}\index{$\Pred$}.  This relation
+will be the desired intermediate relation between $\abeta$ and
+$\abeta^*$, with the diamond property.  $\Pred$ is defined by the
+rules of Figure~\ref{fig:pred} (i.e., $\Pred$ is the set of pairs
+$(t,t')$ such that $t\ \Pred\ t'$ has a finite derivation using those
+rules).  It allows reduction, in a single step, of any subset of the
+$\beta$-redexes of the first related term, to obtain the second.  One
+could reduce a single redex, several redexes (even nested ones), or no
+redexes at all.  It also allows renaming bound variables, although
+only once per variable.  So this means that we will not have
+$\lam{x}{\lam{y}{x\ y}} \Pred \lam{y}{\lam{x}{y\ x}}$, because the
+only way to $\alpha$-reduce the first term to the second is to rename
+one of the variables twice: we can change $x$ to $z$ and then $y$ to
+$x$ and then $z$ to $y$, or similarly starting with changing $y$.  But
+parallel reduction cannot make this change in one step.
 
-We then define $\Pred^\alpha$ from $\Pred$ similarly to the way we defined $\betaa$ from
-$\betaa_\beta$ (Definition~\ref{def:betaa})\index{$\Pred$}:
-
-\begin{definition}
-  $\Pred^\alpha$ is $=_\alpha\Pred $.
-\end{definition}
-\noindent So one takes an $\alpha$-equivalence step, then a $\Pred$ step.
 
 \newcommand{\predvar}[0]{\infer{x \Pred x}{\ }}
 
-\newcommand{\predlam}[0]{\infer{\lam{x}{t} \Pred \lam{x}{t'}}{t \Pred t'}}
+\newcommand{\predlam}[0]{\infer{\lam{x}{t} \Pred \lam{y}{[y/x]t'}}{t \Pred t' & y\not\in\textit{FV}(t')}}
 
 \newcommand{\predapp}[0]{\infer{t_1\ t_2 \Pred t_1'\ t_2'}{t_1 \Pred t_1' & t_2 \Pred t_2'}}
 
@@ -276,7 +279,7 @@ $\betaa_\beta$ (Definition~\ref{def:betaa})\index{$\Pred$}:
  
 \end{array}
 \]
-\caption{The definition of parallel reduction}
+\caption{The definition of parallel reduction, where as usual the displayed substitutions are required to be defined}
 \label{fig:pred}
 \end{figure}
 
@@ -356,17 +359,17 @@ Here are some examples of parallel reduction.
 
 \begin{lemma}
   \label{lem:betapar}
-  $\abeta\ \subseteq\ \Pred^\alpha$.
+  $\abeta\ \subseteq\ \Pred$.
 \end{lemma}
 \begin{proof}
   It suffices to assume $t \abeta t'$ for some $t$ and $t'$,
-  and show $t \Pred^\alpha t'$.  Since $\abeta$ is defined (Definition~\ref{def:abeta}) to be $\curva_\alpha \cup \curva_\beta$,
-  let us consider each possibility.  If we have $t \curva_\alpha t'$, then we have $t \Pred^\alpha t'$, because 
+  and show $t \Pred t'$.  Since $\abeta$ is defined (Definition~\ref{def:abeta}) to be $\curva_\alpha \cup \curva_\beta$,
+  let us consider each possibility.  If we have $t \curva_\alpha t'$, then we have $t \Pred t'$, because 
   \begin{enumerate}
   \item $t =_\alpha t'$, and
   \item $t' \Pred t'$, by Lemma~\ref{lem:predrefl}
   \end{enumerate}
-  \noindent So we get $t =_\alpha t' \Pred t'$, which suffice to prove $t \Pred^\alpha t'$ (by definition of relational composition).
+  \noindent So we get $t =_\alpha t' \Pred t'$, which suffice to prove $t \Pred t'$ (by definition of relational composition).
 
   Now suppose we have $t \curva_\beta t'$.  Then the proof is by
   induction on the derivation of $t \curva_\beta t'$ (via the rules of
@@ -418,10 +421,10 @@ Here are some examples of parallel reduction.
 
 \begin{lemma}
   \label{lem:predmbeta}
-  $\Pred^\alpha\ \subseteq\ \abeta^*$
+  $\Pred\ \subseteq\ \abeta^*$
 \end{lemma}
 \begin{proof}
-  Assume $t \Pred^\alpha t'$.  This implies that there exists some $t''$ with
+  Assume $t \Pred t'$.  This implies that there exists some $t''$ with
   \[
   t =_\alpha t'' \Pred t'
   \]
@@ -486,7 +489,7 @@ Here are some examples of parallel reduction.
 
 \subsection{Parallel reduction has the diamond property}
 
-In this section, we show $\textit{Diamond}(\Pred^\alpha)$.  In general, the diamond property (Definition~\ref{def:diamond}) for a relation follows from the following stronger property:
+In this section, we show $\textit{Diamond}(\Pred)$.  In general, the diamond property (Definition~\ref{def:diamond}) for a relation follows from the following stronger property:
 
 \begin{definition}
   \label{def:triangle}
@@ -538,7 +541,7 @@ as is easily seen by a small example:
 
 
 \begin{theorem}
-  $\textit{Triangle}(\Pred^\alpha)$.
+  $\textit{Triangle}(\Pred)$.
 \end{theorem}
 \begin{proof}
   Assume $t$, and let $t'$ be any term $\alpha$-equivalent to $t$ but
