@@ -11,3 +11,6 @@ record VI : Set₁ where
   ≃-refl = fst (fst ≃-equivalence)
   ≃-symm = snd ≃-equivalence
   ~≃-symm = ~symmetric _≃_ ≃-symm
+
+VI-ℕ : VI
+VI-ℕ = record { V = ℕ ; _≃_ = _=ℕ_ ; ≃-equivalence = =ℕ-equivalence ; ≃-≡ = =ℕ-to-≡ }

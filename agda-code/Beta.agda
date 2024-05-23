@@ -1,6 +1,4 @@
 open import lib
-open import bool-relations as B
-open import relations as R
 open import VarInterface
 
 module Beta(vi : VI) where
@@ -8,6 +6,8 @@ module Beta(vi : VI) where
 open VI vi
 open import Tm vi
 open import Subst vi
+open import Tau vi
+open import Alpha vi
 
 β : Rel Tm
 β ((ƛ x t1) · t2) t' =
@@ -16,4 +16,12 @@ open import Subst vi
    t' ≡ subst s t1
 β _ _ = ⊥
 
+↝β : Rel Tm
+↝β = τ β
+
+↝αβ : Rel Tm
+↝αβ = ↝α ∪ ↝β
+
+↝ : Rel Tm
+↝ = =α ∘ ↝β ∘ =α
 

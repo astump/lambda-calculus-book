@@ -1,5 +1,4 @@
 open import lib
-open import bool-relations
 open import VarInterface
 
 module Tm(vi : VI) where
@@ -10,6 +9,8 @@ data Tm : Set where
   var : (x : V) → Tm
   _·_ : (t : Tm) → (t' : Tm) → Tm
   ƛ : (x : V) → (t : Tm) → Tm
+
+infixl 10 _·_ 
 
 -- is the given variable free in the given term
 freeIn : V → Tm → 𝔹
