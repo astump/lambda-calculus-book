@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import lib
 open import bool-relations
 open import VarInterface
@@ -18,6 +19,9 @@ Subst1 = (V × Tm)
 Subst : Set
 Subst = 𝕃 Subst1
 
+Renaming : Set
+Renaming = 𝕃 (V × V)
+
 -- would applying the given Subst1 to the given Tm avoid variable capture?
 subst1ok : Subst1 → Tm → 𝔹
 subst1ok (x , t) (var _) = tt
@@ -28,8 +32,23 @@ substOk : Subst → Tm → 𝔹
 substOk ss t = list-all (λ s → subst1ok s t) ss
 
 -- find the first binding, if there is one, of the variable y in the substitution s
-lookup : Subst → V → maybe Tm
+lookup : ∀{X : Set} → 𝕃 (V × X) → V → maybe X
 lookup s y = maybe-map snd (find (λ p → y ≃ (fst p)) s)
+
+rename-var : Renaming → V → V
+rename-var r v with lookup r v
+rename-var r v | nothing = v
+rename-var r v | just v' = v'
+
+renaming-dom : Renaming → 𝕃 V
+renaming-dom = map fst
+
+renaming-field : Renaming → 𝕃 V
+renaming-field [] = []
+renaming-field ((x , x') :: r) = x :: x' :: renaming-field r
+
+renaming-ran : Renaming → 𝕃 V
+renaming-ran = map snd
 
 ----------------------------------------------------------------------
 -- Various functions for doing substitutions
@@ -57,6 +76,9 @@ toSubst1 x t = (x , t)
 
 <_↦_>_ : V → V → Tm → Tm
 < x ↦ y > t = [ var y / x ] t
+
+[_/_]ok_ : Tm → V → Tm → 𝔹
+[ t2 / x ]ok t1 = subst1ok (toSubst1 x t2) t1
 
 renameOk : V → V → Tm → 𝔹
 renameOk x y t = subst1ok (toSubst1 x (var y)) t
@@ -153,3 +175,24 @@ renameOk-undo x y (ƛ x₁ t) fi | tt , p | ff , q rewrite p | q | subst[] t rew
 renameOk-undo x y (ƛ x₁ t) fi | ff , p | tt , q rewrite p | q | ~≃-symm p = refl
 renameOk-undo x y (ƛ x₁ t) fi | ff , p | ff , q rewrite p | q | ~≃-symm p rewrite renameOk-undo x y t fi = ||-tt (~ freeIn y (< x ↦ y > t))
 
+
+[/]ok-subst : ∀{t1 t2 t : Tm}{x y : V} → 
+               ([ t / x ]ok t1) ≡ tt →                
+               ([ t / x ]ok t2) ≡ tt →
+               ([ t / x ]ok [ t2 / y ] t1) ≡ tt 
+[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 with y ≃ z | z ≃ y
+[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | tt | tt = p2
+[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | ff | tt = p2
+[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | tt | ff = refl
+[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | ff | ff = refl
+[/]ok-subst {t1a · t1b}{t2}{t}{x}{y} p1 p2 =
+  &&-intro{[ t / x ]ok [ t2 / y ] t1a}
+    ([/]ok-subst{t1a}{t2}{t}{x}{y} (&&-elim1 p1) p2)
+    ([/]ok-subst{t1b}{t2}{t}{x}{y} (&&-elim2 p1) p2)
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 with y ≃ z | x ≃ z
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | tt | tt = refl 
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | tt = refl -- rewrite [/]ok-subst {t1}{t2}{t}{x}{y} {!p1!} p2 = {!!}
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | tt | ff rewrite subst[] t1 = p1
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | ff with ||-elim{~ freeIn x t1} p1
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | ff | inj₁ q = {!!}
+[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | ff | inj₂ q = {!!}
