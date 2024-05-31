@@ -19,6 +19,9 @@ record VI : Set₁ where
   ≃-symm = snd ≃-equivalence
   ~≃-symm = ~symmetric _≃_ ≃-symm
 
+  _#_ : 𝕃 V → 𝕃 V → 𝔹
+  xs # ys = disjoint _≃_ xs ys
+
 ----------------------------------------------------------------------
 -- an implementation of the above interface based on V = ℕ
 

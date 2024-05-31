@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import lib
 open import bool-relations
 open import VarInterface
@@ -6,7 +5,8 @@ open import VarInterface
 module Subst(vi : VI) where
 
 open VI vi
-open import Tm vi 
+open import Tm vi
+open import FreeVars vi 
 
 ----------------------------------------------------------------------
 -- Definition of substitutions, helper functions
@@ -30,6 +30,9 @@ subst1ok (x , t) (ƛ y t') = x ≃ y || ~ (freeIn x t') || ((~ freeIn y t) && su
 
 substOk : Subst → Tm → 𝔹
 substOk ss t = list-all (λ s → subst1ok s t) ss
+
+subst-ran : Subst → 𝕃 Tm
+subst-ran = map snd
 
 -- find the first binding, if there is one, of the variable y in the substitution s
 lookup : ∀{X : Set} → 𝕃 (V × X) → V → maybe X
@@ -175,24 +178,64 @@ renameOk-undo x y (ƛ x₁ t) fi | tt , p | ff , q rewrite p | q | subst[] t rew
 renameOk-undo x y (ƛ x₁ t) fi | ff , p | tt , q rewrite p | q | ~≃-symm p = refl
 renameOk-undo x y (ƛ x₁ t) fi | ff , p | ff , q rewrite p | q | ~≃-symm p rewrite renameOk-undo x y t fi = ||-tt (~ freeIn y (< x ↦ y > t))
 
+{- some annoying lemmas I did not attempt to carry out in place below -}
+list-all-fv-lem : ∀(x y z : V) → 
+                  x ≃ y ≡ ff → ~ (y ≃ z) ≡ ff → ~ (z ≃ x) || ff ≡ tt
+list-all-fv-lem x y z u v with keep (y ≃ z) 
+list-all-fv-lem x y z u v | ff , p rewrite p with v 
+list-all-fv-lem x y z u v | ff , p | ()
+list-all-fv-lem x y z u v | tt , p rewrite ≃-≡ p | ~≃-symm u = refl
 
-[/]ok-subst : ∀{t1 t2 t : Tm}{x y : V} → 
-               ([ t / x ]ok t1) ≡ tt →                
-               ([ t / x ]ok t2) ≡ tt →
-               ([ t / x ]ok [ t2 / y ] t1) ≡ tt 
-[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 with y ≃ z | z ≃ y
-[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | tt | tt = p2
-[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | ff | tt = p2
-[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | tt | ff = refl
-[/]ok-subst {var z}{t2}{t}{x}{y} p1 p2 | ff | ff = refl
-[/]ok-subst {t1a · t1b}{t2}{t}{x}{y} p1 p2 =
-  &&-intro{[ t / x ]ok [ t2 / y ] t1a}
-    ([/]ok-subst{t1a}{t2}{t}{x}{y} (&&-elim1 p1) p2)
-    ([/]ok-subst{t1b}{t2}{t}{x}{y} (&&-elim2 p1) p2)
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 with y ≃ z | x ≃ z
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | tt | tt = refl 
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | tt = refl -- rewrite [/]ok-subst {t1}{t2}{t}{x}{y} {!p1!} p2 = {!!}
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | tt | ff rewrite subst[] t1 = p1
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | ff with ||-elim{~ freeIn x t1} p1
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | ff | inj₁ q = {!!}
-[/]ok-subst {ƛ z t1}{t2}{t}{x}{y} p1 p2 | ff | ff | inj₂ q = {!!}
+list-all-fv-lem2 : ∀{x : V}(a : V) → ~ (a ≃ x) ≡ tt → ~ (a ≃ x) || ff ≡ tt
+list-all-fv-lem2{x} a u with a ≃ x 
+list-all-fv-lem2{x} a u | tt with u
+list-all-fv-lem2{x} a u | tt | ()
+list-all-fv-lem2{x} a u | ff = refl
+
+list-all-fv-lem3 : ∀{x : V}(a : V) → ~ (a ≃ x) || ff ≡ tt → ~ (a ≃ x) ≡ tt
+list-all-fv-lem3{x} a u with a ≃ x 
+list-all-fv-lem3{x} a u | tt with u
+list-all-fv-lem3{x} a u | tt | ()
+list-all-fv-lem3{x} a u | ff = refl
+
+subst1ok-apart-lem : {x : V}(a : V) → ~ ((a ≃ x) || ff) ≡ tt → ~ (a ≃ x) ≡ tt
+subst1ok-apart-lem{x} a u with a ≃ x
+subst1ok-apart-lem a u | tt with u
+subst1ok-apart-lem a u | tt | ()
+subst1ok-apart-lem a u | ff = refl
+
+{- if x is different from all the free variables of t, then x is not free in t -}
+list-all-fv : ∀{x : V}{t : Tm} → 
+  list-all (λ y → ~ (y ≃ x)) (fv t) ≡ tt →
+  freeIn x t ≡ ff
+list-all-fv {x} {var y} p with keep (y ≃ x) 
+list-all-fv {x} {var y} p | tt , r rewrite r with p
+list-all-fv {x} {var y} p | tt , r | ()
+list-all-fv {x} {var y} p | ff , r rewrite ~≃-symm r = refl
+list-all-fv {x} {t1 · t2} p rewrite list-all-append (λ y → ~ (y ≃ x)) (fv t1) (fv t2)
+  with &&-elim {list-all (λ y → ~ (y ≃ x)) (fv t1)} p 
+list-all-fv {x} {t1 · t2} p | p1 , p2 rewrite list-all-fv{x}{t1} p1 | list-all-fv{x}{t2} p2 = refl
+list-all-fv {x} {ƛ y t} p with keep (x ≃ y)
+list-all-fv {x} {ƛ y t} p | tt , q rewrite q = refl
+list-all-fv {x} {ƛ y t} p | ff , q rewrite q
+  with list-all-filter (fv t) (λ z u → list-all-fv-lem x y z q u)
+         (list-all-sub (filter (λ z → ~ (y ≃ z)) (fv t)) list-all-fv-lem2  p) 
+list-all-fv {x} {ƛ y t} p | ff , q | r =
+  list-all-fv{x}{t} ((list-all-sub (fv t) list-all-fv-lem3 r))
+
+{- if the list of free variables of t2 is disjoint from the list of bound variables of t1,
+   then t2 can be substituted into t1 without risk of capture -}
+subst1ok-apart : ∀{t2 : Tm}{x : V}{t1 : Tm} →
+                  bv-apart t2 t1 ≡ tt → 
+                  [ t2 / x ]ok t1 ≡ tt
+subst1ok-apart{t1 = var x} u = refl
+subst1ok-apart{t2}{x}{t1a · t1b} u with disjoint-++{l1 = fv t2}{bv t1a}{bv t1b} u
+subst1ok-apart{t2}{x}{t1a · t1b} _ | u1 , u2
+  rewrite subst1ok-apart{t2}{x}{t1 = t1a} u1 | subst1ok-apart{t2}{x}{t1 = t1b} u2 = refl
+subst1ok-apart{t2}{y}{t1 = ƛ x t1} u with disjoint-++{l1 = fv t2}{l2a = [ x ]}{l2b = bv t1} u
+subst1ok-apart{t2}{y}{t1 = ƛ x t1} u | u1 , u2 = 
+  ||-intro2{y ≃ x}
+  (||-intro2 {~ freeIn y t1}
+  (&&-intro {~ freeIn x t2}
+     (cong ~_ (list-all-fv{x}{t2} (list-all-sub (fv t2) subst1ok-apart-lem u1)))
+     (subst1ok-apart {t2} {y} {t1} (snd (disjoint-++{l1 = fv t2}{[ x ]}{bv t1} u)))))
