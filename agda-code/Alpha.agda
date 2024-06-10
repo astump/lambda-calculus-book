@@ -16,8 +16,8 @@ open import Tau vi
 
 α : Rel Tm
 α (ƛ x t1) (ƛ y t2) =
-   renameOk x y t1 ≡ tt ∧
-   freeIn y t1 ≡ ff ∧
+   renameOk x y t1 ∧
+   ¬ freeIn y t1 ∧
    x ≃ y ≡ ff ∧         -- don't allow trivial renamings
    t2 ≡ < x ↦ y > t1
 α _ _ = ⊥
@@ -31,6 +31,8 @@ open import Tau vi
 ----------------------------------------------------------------------
 -- Theorems about α
 ----------------------------------------------------------------------
+
+{-
 
 α-symm : R.symmetric α
 α-symm {ƛ x t1} {ƛ y t2} (s , f , xy , refl) = renameOk-undo x y t1 f , freeIn-subst (var y) x t1 xy , ~≃-symm xy , sym (rename-undo f s) 
@@ -48,4 +50,6 @@ open import Tau vi
 =α-trans = _⋆trans_
 
 =α-equiv : R.equivalence =α
-=α-equiv = (=α-refl , =α-trans) , =α-symm 
+=α-equiv = (=α-refl , =α-trans) , =α-symm
+
+-}

@@ -12,7 +12,7 @@ open import Alpha vi
 β : Rel Tm
 β ((ƛ x t1) · t2) t' =
  let s = [ (x , t2) ] in
-   substOk s t1 ≡ tt ∧
+   substOk s t1 ∧
    t' ≡ subst s t1
 β _ _ = ⊥
 
@@ -25,26 +25,65 @@ open import Alpha vi
 ↝ : Rel Tm
 ↝ = =α ∘ ↝β ∘ =α
 
-↝αβ-app1⋆ : ∀{t1 t1' t2 : Tm} →
-             t1 ⟨ ↝αβ ⋆ ⟩ t1' →
-             (t1 · t2) ⟨ ↝αβ ⋆ ⟩ (t1' · t2)
-↝αβ-app1⋆ ⋆refl = ⋆refl
-↝αβ-app1⋆ (⋆base (inj₁ p)) = ⋆base (inj₁ (τ-app1 p))
-↝αβ-app1⋆ (⋆base (inj₂ p)) = ⋆base (inj₂ (τ-app1 p))
-↝αβ-app1⋆ (p1 ⋆trans p2) = (↝αβ-app1⋆ p1) ⋆trans (↝αβ-app1⋆ p2)
+β-freeIn : ∀{x : V}{t t' : Tm} →
+            freeIn x t' → 
+            t ⟨ β ⟩ t' →
+            freeIn x t
+β-freeIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) with keep (x ≃ y)
+β-freeIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | tt , e rewrite ≃-≡ e = inj₂ (freeIn-subst-same{t2}{y}{t1} u)
+β-freeIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | ff , e with freeIn-subst{x}{t2}{y}{t1} u
+β-freeIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | ff , e | inj₁ p = inj₁ (e , p)
+β-freeIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | ff , e | inj₂ (p , q) = inj₂ p
 
-↝αβ-app2⋆ : ∀{t1 t2 t2' : Tm} →
-             t2 ⟨ ↝αβ ⋆ ⟩ t2' →
-             (t1 · t2) ⟨ ↝αβ ⋆ ⟩ (t1 · t2')
-↝αβ-app2⋆ ⋆refl = ⋆refl
-↝αβ-app2⋆ (⋆base (inj₁ p)) = ⋆base (inj₁ (τ-app2 p))
-↝αβ-app2⋆ (⋆base (inj₂ p)) = ⋆base (inj₂ (τ-app2 p))
-↝αβ-app2⋆ (p1 ⋆trans p2) = (↝αβ-app2⋆ p1) ⋆trans (↝αβ-app2⋆ p2)
+↝β-freeIn : ∀{x : V}{t t' : Tm} →
+            freeIn x t' → 
+            t ⟨ ↝β ⟩ t' →
+            freeIn x t
+↝β-freeIn f (τ-base d) = β-freeIn f d
+↝β-freeIn (inj₁ f) (τ-app1 d) = inj₁ (↝β-freeIn f d)
+↝β-freeIn (inj₂ f) (τ-app1 d) = inj₂ f
+↝β-freeIn (inj₁ f) (τ-app2 d) = inj₁ f
+↝β-freeIn (inj₂ f) (τ-app2 d) = inj₂ (↝β-freeIn f d)
+↝β-freeIn{x} f (τ-lam{v} d) with x ≃ v
+↝β-freeIn{x} (() , _) (τ-lam{v} d) | tt 
+↝β-freeIn{x} (_ , f) (τ-lam{v} d) | ff = refl , ↝β-freeIn f d
 
-↝αβ-lam⋆ : ∀{v : V}{t t' : Tm} →
-            t ⟨ ↝αβ ⋆ ⟩ t' →
-            (ƛ v t) ⟨ ↝αβ ⋆ ⟩ (ƛ v t')
-↝αβ-lam⋆ ⋆refl = ⋆refl
-↝αβ-lam⋆ (⋆base (inj₁ p)) = ⋆base (inj₁ (τ-lam p))
-↝αβ-lam⋆ (⋆base (inj₂ p)) = ⋆base (inj₂ (τ-lam p))
-↝αβ-lam⋆ (p1 ⋆trans p2) = (↝αβ-lam⋆ p1) ⋆trans (↝αβ-lam⋆ p2) 
+↝β⋆-freeIn : ∀{x : V}{t t' : Tm} →
+            freeIn x t' → 
+            t ⟨ ↝β ⋆ ⟩ t' →
+            freeIn x t
+↝β⋆-freeIn f ⋆refl = f
+↝β⋆-freeIn f (⋆base d) = ↝β-freeIn f d
+↝β⋆-freeIn f (d1 ⋆trans d2) = ↝β⋆-freeIn (↝β⋆-freeIn f d2) d1
+
+β-boundIn : ∀{x : V}{t t' : Tm} →
+            boundIn x t' → 
+            t ⟨ β ⟩ t' →
+            boundIn x t
+β-boundIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) with keep (x ≃ y)
+β-boundIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | tt , e rewrite ≃-≡ e = inj₁ (inj₁ ≃-refl)
+β-boundIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | ff , e with boundIn-subst{x}{t2}{y}{t1} u
+β-boundIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | ff , e | inj₁ p = inj₁ (inj₂ p)
+β-boundIn{x}{(ƛ y t1) · t2} u ((b , triv) , refl) | ff , e | inj₂ (p , q) = inj₂ p
+
+↝β-boundIn : ∀{x : V}{t t' : Tm} →
+              boundIn x t' → 
+              t ⟨ ↝β ⟩ t' →
+              boundIn x t
+↝β-boundIn f (τ-base d) = β-boundIn f d
+↝β-boundIn (inj₁ f) (τ-app1 d) = inj₁ (↝β-boundIn f d)
+↝β-boundIn (inj₂ f) (τ-app1 d) = inj₂ f
+↝β-boundIn (inj₁ f) (τ-app2 d) = inj₁ f
+↝β-boundIn (inj₂ f) (τ-app2 d) = inj₂ (↝β-boundIn f d)
+↝β-boundIn{x} f (τ-lam{v} d) with x ≃ v
+↝β-boundIn{x} f (τ-lam{v} d) | tt = inj₁ refl
+↝β-boundIn{x} (inj₁ ()) (τ-lam{v} d) | ff
+↝β-boundIn{x} (inj₂ f) (τ-lam{v} d) | ff = inj₂ (↝β-boundIn f d)
+
+↝β⋆-boundIn : ∀{x : V}{t t' : Tm} →
+            boundIn x t' → 
+            t ⟨ ↝β ⋆ ⟩ t' →
+            boundIn x t
+↝β⋆-boundIn f ⋆refl = f
+↝β⋆-boundIn f (⋆base d) = ↝β-boundIn f d
+↝β⋆-boundIn f (d1 ⋆trans d2) = ↝β⋆-boundIn (↝β⋆-boundIn f d2) d1
