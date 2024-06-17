@@ -2,7 +2,7 @@ open import lib
 open import bool-relations
 
 fresh-distinctness : ∀{V : Set}(_≃_ : V → V → 𝔹) → (𝕃 V → V) → Set
-fresh-distinctness{V} _≃_ fresh = ∀ {l : 𝕃 V} → all-pred (λ x → x ≃ fresh l ≡ ff) l
+fresh-distinctness{V} _≃_ fresh = ∀ {l : 𝕃 V} → list-member _≃_ (fresh l) l ≡ ff
 
 record VI : Set₁ where
   field
@@ -13,7 +13,7 @@ record VI : Set₁ where
 
   field
     fresh : 𝕃 V → V
-    fresh-distinct : ∀ {l : 𝕃 V} → all-pred (λ x → x ≃ fresh l ≡ ff) l --fresh-distinctness _≃_ fresh
+    fresh-distinct : fresh-distinctness _≃_ fresh
 
   ≃-refl = fst (fst ≃-equivalence)
   ≃-symm = snd ≃-equivalence
@@ -39,11 +39,12 @@ fresh-ℕ-step {x} {[]} | y , r rewrite r | +suc x y = ≤<suc{x} (≤+1 x y)
 fresh-ℕ-step {x} {x₁ :: l1}{l2} with fresh-ℕ-step{x}{l1}{l2}
 fresh-ℕ-step {x} {x₁ :: l1} | r = <+1{x}{x₁} r
 
-fresh-ℕ-distinct : ∀{l1 l2 : 𝕃 ℕ} → all-pred (λ x → x =ℕ fresh-ℕ (l1 ++ l2) ≡ ff) l2
-fresh-ℕ-distinct {l1} {[]} = triv
-fresh-ℕ-distinct {l1} {x :: l2} = <-not-=ℕ'{x} (fresh-ℕ-step{x}{l1}{l2}) , h
- where h : all-pred (λ x₁ → x₁ =ℕ fresh-ℕ (l1 ++ x :: l2) ≡ ff) l2
-       h rewrite sym (++-singleton x l1 l2) = fresh-ℕ-distinct{l1 ++ [ x ]}{l2}
+fresh-ℕ-distinct : ∀{l1 l2 : 𝕃 ℕ} →
+                   list-member _=ℕ_ (fresh-ℕ (l1 ++ l2)) l2 ≡ ff
+fresh-ℕ-distinct {l1}{[]} = refl
+fresh-ℕ-distinct {l1}{x :: l2} rewrite =ℕ-sym (fresh-ℕ (l1 ++ x :: l2)) x | (<-not-=ℕ'{x} (fresh-ℕ-step{x}{l1}{l2})) |
+  sym (++-singleton x l1 l2) =
+  fresh-ℕ-distinct{l1 ++ [ x ]}{l2}
 
 VI-ℕ : VI
 VI-ℕ = record {
@@ -52,4 +53,4 @@ VI-ℕ = record {
         ≃-equivalence = =ℕ-equivalence ;
         ≃-≡ = =ℕ-to-≡ ;
         fresh = fresh-ℕ ;
-        fresh-distinct = fresh-ℕ-distinct{[]}}
+        fresh-distinct = λ {l2} → fresh-ℕ-distinct{[]}{l2}}

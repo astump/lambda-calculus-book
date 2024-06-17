@@ -392,4 +392,13 @@ subst1ok-subst {x} {y} {t2} {t1b} {ƛ z t1a} (inj₂ (inj₂ (nf' , ok))) (inj�
   where h : ¬ freeIn z ([ t2 / x ] t1b)
         h f with freeIn-subst{z}{t2}{x}{t1b} f
         h f | inj₁ f1 = nf' f1
-        h f | inj₂ (f1 , f2) = nf'' f1        
+        h f | inj₂ (f1 , f2) = nf'' f1
+
+rename-nothing : ∀{r : Renaming}{x : V} →
+                 lookup r x ≡ nothing →
+                 rename-var r x ≡ x
+rename-nothing {[]} {x} u = refl
+rename-nothing {(y , y') :: r} {x} u with keep (x ≃ y)
+rename-nothing {(y , y') :: r} {x} u | tt , p rewrite p with u
+rename-nothing {(y , y') :: r} {x} u | tt , p | ()
+rename-nothing {(y , y') :: r} {x} u | ff , p rewrite p | u = refl

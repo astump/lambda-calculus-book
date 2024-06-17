@@ -106,3 +106,39 @@ data ⇒ : Tm → Tm → Set where
           h2 : bv-apart t2' t1a'
           h2 x f b = a x (⇒-freeIn {x} {t2} {t2'} f d2)
                          (inj₁ (inj₂ (⇒-boundIn {x} {t1a} {t1a'} b d1a)))
+
+----------------------------------------------------------------------
+-- parallel alpha reduction
+----------------------------------------------------------------------
+
+data ⇛ : Tm → Tm → Set where
+  ⇛var : ∀{v : V} →
+          var v ⟨ ⇛ ⟩ var v
+  ⇛app : ∀{t1 t1' t2 t2' : Tm} → 
+          t1 ⟨ ⇛ ⟩ t1' →
+          t2 ⟨ ⇛ ⟩ t2' →
+          (t1 · t2) ⟨ ⇛ ⟩ (t1' · t2')
+  ⇛lam : ∀{x : V}{t1 t1' : Tm} →
+           t1 ⟨ ⇛ ⟩ t1' →
+           (ƛ x t1) ⟨ ⇛ ⟩ (ƛ x t1')
+  ⇛alpha : ∀{x : V}{t1 t1' c : Tm} → 
+            t1 ⟨ ⇛ ⟩ t1' →
+            (ƛ x t1') ⟨ α ⟩ c → 
+            (ƛ x t1) ⟨ ⇛ ⟩ c
+
+⇛refl : reflexive ⇛ 
+⇛refl {var x} = ⇛var
+⇛refl {t · t₁} = ⇛app ⇛refl ⇛refl 
+⇛refl {ƛ x t} = ⇛lam ⇛refl 
+
+↝α-⇛ : ↝α ⊆ ⇛
+↝α-⇛ {ƛ x t1}{a'} (τ-base p) = ⇛alpha ⇛refl p
+↝α-⇛ (τ-app1 x) = ⇛app (↝α-⇛ x) ⇛refl
+↝α-⇛ (τ-app2 x) = ⇛app ⇛refl (↝α-⇛ x)
+↝α-⇛ (τ-lam x) = ⇛lam (↝α-⇛ x) 
+
+⇛↝α⋆ : ⇛ ⊆ (↝α ⋆)
+⇛↝α⋆ ⇛var = ⋆refl 
+⇛↝α⋆ (⇛app d d') =  (⋆app1 (⇛↝α⋆ d)) ⋆trans (⋆app2 (⇛↝α⋆ d'))
+⇛↝α⋆ (⇛lam d) = ⋆lam (⇛↝α⋆ d)
+⇛↝α⋆ (⇛alpha d a) = (⋆lam (⇛↝α⋆ d)) ⋆trans (⋆base (τ-base a))

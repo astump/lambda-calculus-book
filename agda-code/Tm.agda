@@ -32,6 +32,13 @@ bv-apart-app : ∀{t2 t1a t1b : Tm} →
                 bv-apart t2 t1a ∧ bv-apart t2 t1b
 bv-apart-app{t2}{t1a}{t1b} a = (λ x u b → a x u (inj₁ b)) , λ x u b → a x u (inj₂ b)
 
+bv-apart-app' : ∀{t2 t1a t1b : Tm} →
+                bv-apart t2 t1a →
+                bv-apart t2 t1b → 
+                bv-apart t2 (t1a · t1b)
+bv-apart-app'{t2}{t1a}{t1b} a1 a2 x u (inj₁ b) = a1 x u b
+bv-apart-app'{t2}{t1a}{t1b} a1 a2 x u (inj₂ b) = a2 x u b
+
 bv-apart-lam : ∀{t2 : Tm}{x : V}{t1 : Tm} →
                 bv-apart t2 (ƛ x t1) →
                 ¬ freeIn x t2 ∧ bv-apart t2 t1
@@ -48,3 +55,8 @@ bv-apart-lam{t2}{x}{t1} u = (λ f → u x f (inj₁ (≃-refl {x}))) , λ y f b 
 ¬freeIn-lam{x}{y}{t} nf with x ≃ y
 ¬freeIn-lam{x}{y}{t} nf | tt = inj₁ refl
 ¬freeIn-lam{x}{y}{t} nf | ff = inj₂ (refl , (λ f → nf (refl , f)))
+
+fv : Tm → 𝕃 V
+fv (var x) = [ x ]
+fv (t1 · t2) = fv t1 ++ fv t2
+fv (ƛ x t) = remove _≃_ x (fv t)
