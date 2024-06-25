@@ -1,7 +1,5 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
-{- definition of parallel reduction, for proof of confluence.
-
-   The definition here builds in alpha-equivalence for the lambda case. -}
+{- definition of parallel reduction relations, for proof of confluence.
+   There is one relation for parallel β, and another for parallel α. -}
 open import lib
 open import relations
 open import diamond
@@ -15,6 +13,10 @@ open import Subst vi
 open import Beta vi
 open import Alpha vi 
 open import Tau vi 
+
+----------------------------------------------------------------------
+-- parallel beta reduction
+----------------------------------------------------------------------
 
 data ⇒ : Tm → Tm → Set where
   ⇒var : ∀{v : V} →

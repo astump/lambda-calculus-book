@@ -88,7 +88,7 @@ mpc-completion (a , ok1 , ok2) (⇒beta{x}{t1}{t1'}{t2}{t2'} d1 d2 ((s , _) , re
     ƛ x' (αcanonh t (x' :: avoid) ((x , x') :: r))
 
 αcanon : Tm → Tm
-αcanon t = αcanonh t (fv t) []
+αcanon t = αcanonh t (vars t) []
 
 boundIn-αcanon : ∀{avoid : 𝕃 V}{r : Renaming}{t : Tm}{x : V} → 
                   boundIn x (αcanonh t avoid r) →
@@ -183,5 +183,61 @@ mpcOk-αcanon{avoid}{r}{ƛ y t} fa sr =
    h z fz with keep (z ≃ y)
    h z fz | tt , p rewrite p = ||-intro1 ≃-refl
    h z fz | ff , p rewrite p = ||-intro2 (fa z (p , fz))
+
+
+αcanon-triv-renaming : ∀{x : V}{r1 r2 : Renaming}{avoid : 𝕃 V}{t : Tm} →
+                         rename-var r2 x ≡ x → 
+                         αcanonh t avoid (r1 ++ r2) ≡ αcanonh t avoid (r1 ++ subst-drop x r2)
+αcanon-triv-renaming{x}{r1}{r2}{avoid}{var y} u rewrite rename-subst-drop+{x}{y}{r1}{r2} u = refl
+αcanon-triv-renaming{x}{r1}{r2}{avoid}{t1 · t2} u
+  rewrite αcanon-triv-renaming{x}{r1}{r2}{avoid}{t1} u | αcanon-triv-renaming{x}{r1}{r2}{avoid}{t2} u = refl
+αcanon-triv-renaming{x}{r1}{r2}{avoid}{ƛ y t} u
+  rewrite αcanon-triv-renaming{x}{(y , fresh avoid) :: r1}{r2}{fresh avoid :: avoid}{t} u = refl
+
+αcanon-rename : ∀{t : Tm}{x y : V}{r : Renaming}{avoid : 𝕃 V} → 
+                list-member _≃_ x (renaming-ran r) ≡ ff → 
+                αcanonh t (y :: avoid) ((x , y) :: r)
+             ≡ (< x ↦ y > αcanonh t (x :: avoid) (subst-drop x r))
+αcanon-rename{var z}{x}{y}{r}{avoid} u rewrite rename-var-lem{rename-var (subst-drop x r) z}{[ x , y ]} = cong var h 
+  where
+    h : rename-var ((x , y) :: r) z ≡ rename-var [ x , y ] (rename-var (subst-drop x r) z)
+    h with keep (z ≃ x) 
+    h | tt , p rewrite p | ≃-≡ p | rename-subst-drop1{x}{r} | ≃-refl{x} = refl
+    h | ff , p rewrite p | rename-subst-drop2{x}{z}{r} (~≃-sym p) = h'{r} u
+      where
+        h' : ∀{r : Renaming} →
+             list-member _≃_ x (renaming-ran r) ≡ ff →
+             rename-var r z ≡ rename-var [ x , y ] (rename-var r z)
+        h' {[]} nr rewrite p = refl
+        h' {(w , w') :: r} nr with keep (z ≃ w) 
+        h' {(w , w') :: r} nr | tt , q rewrite q | ~≃-sym (fst (||-≡-ff{x ≃ w'} nr)) = refl
+        h' {(w , w') :: r} nr | ff , q rewrite q = h'{r} (snd (||-≡-ff{x ≃ w'} nr)) 
+αcanon-rename{t1 · t2}{x}{y}{r}{avoid} u
+  rewrite αcanon-rename{t1}{x}{y}{r}{avoid} u | αcanon-rename{t2}{x}{y}{r}{avoid} u = refl
+
+αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u with fst (||-≡-ff{fresh (x :: avoid) ≃ x} (fresh-distinct{x :: avoid}))
+αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u | dis rewrite ~≃-sym dis = {!!}
+
+αcanon-completion : ∀{t1 t2 : Tm}{avoid : 𝕃 V}{r : Renaming} → 
+                    (∀ x → freeIn x t1 → list-member _≃_ (rename-var r x) avoid ≡ tt) →
+                    t1 ⟨ ⇛ ⟩ t2 →
+                    rename r t2 ⟨ ⇛ ⟩ αcanonh t1 avoid r
+αcanon-completion {r = r} fa (⇛var{v}) rewrite rename-var-lem{v}{r} = ⇛var
+αcanon-completion fa (⇛app d1 d2) = ⇛app (αcanon-completion {!!} d1) (αcanon-completion {!!} d2)
+αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} fa (⇛lam{x} d) with αcanon-completion{t}{t'}{x :: avoid}{subst-drop x r} {!!} d 
+αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} fa (⇛lam{x} d) | p rewrite renaming-to-subst-drop{r}{x} with keep (x ≃ fresh avoid)  
+αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r}fa (⇛lam{x} d) | p | tt , q rewrite sym (≃-≡ q) with
+   sym (αcanon-triv-renaming{x}{[]}{(x , x) :: r}{x :: avoid}{t} h)
+   where
+    h : rename-var ((x , x) :: r) x ≡ x
+    h rewrite ≃-refl{x} = refl
+αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r}fa (⇛lam{x} d) | p | tt , q | rn
+  rewrite ≃-refl{x} | rn | sym (renaming-to-subst-drop{r}{x}) = 
+  {!!} {- ⇛lam{x}{subst (renaming-to-subst (subst-drop x r)) t'}{αcanonh t (x :: avoid) ((x , x) :: r)} p -}
+αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r}fa (⇛lam{x} d) | p | ff , q = 
+  ⇛alpha{x}{subst (subst-drop x (renaming-to-subst r)) t'}{c = ƛ (fresh avoid) (αcanonh t (fresh avoid :: avoid) ((x , fresh avoid) :: r))}
+    p ({!!} , {!!} , q , {!!})   
+αcanon-completion{avoid = avoid}{r} fa (⇛alpha{x}{t2}{t2'}{ƛ y t2''} d (rok , nf , diff , refl)) = {!!}
+  --⇛alpha {y} {t2''} {αcanonh t2'' (fresh avoid :: avoid) ((y , fresh avoid) :: r)} {!!} ({!!} , {!!} , {!!} , {!!} )
 
 

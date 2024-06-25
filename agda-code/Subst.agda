@@ -57,13 +57,22 @@ renaming-ran = map snd
 -- Various functions for doing substitutions
 ----------------------------------------------------------------------
 
+subst-drop : ∀{A : Set} → V → 𝕃 (V × A) → 𝕃 (V × A)
+subst-drop x = filter (λ p → ~ (fst p) ≃ x)
+
 -- apply the given substitution simultaneously to the given term
 subst : Subst → Tm → Tm
 subst s (var y) with lookup s y
 subst s (var y) | nothing = var y
 subst s (var y) | just t = t
 subst s (t1 · t2) = subst s t1 · subst s t2
-subst s (ƛ x t) = ƛ x (subst (filter (λ p → ~ (fst p) ≃ x) s) t)
+subst s (ƛ x t) = ƛ x (subst (subst-drop x s) t)
+
+renaming-to-subst : Renaming → Subst
+renaming-to-subst = map (snd-map var)
+
+rename : Renaming → Tm → Tm
+rename r = subst (renaming-to-subst r)
 
 toSubst : Subst1 → Subst
 toSubst s = [ s ]
@@ -103,7 +112,7 @@ freeIn-subst : ∀{x : V}{t2 : Tm}{y : V}{t1 : Tm} →
                 freeIn x ([ t2 / y ] t1) →
                 freeIn x t1 ∨ (freeIn x t2 ∧ freeIn y t1)
 freeIn-subst {x} {t2} {y} {var z} u with keep (z ≃ y) 
-freeIn-subst {x} {t2} {y} {var z} u | tt , p rewrite p | ≃-symm p = inj₂ (u , refl)
+freeIn-subst {x} {t2} {y} {var z} u | tt , p rewrite p | ≃-sym p = inj₂ (u , refl)
 freeIn-subst {x} {t2} {y} {var z} u | ff , p rewrite p = inj₁ u
 freeIn-subst {x} {t2} {y} {t1a · t1b} (inj₁ u) with freeIn-subst{x}{t2}{y}{t1a} u
 freeIn-subst {x} {t2} {y} {t1a · t1b} (inj₁ u) | inj₁ v = inj₁ (inj₁ v)
@@ -121,7 +130,7 @@ boundIn-subst : ∀{x : V}{t2 : Tm}{y : V}{t1 : Tm} →
                 boundIn x ([ t2 / y ] t1) →
                 boundIn x t1 ∨ (boundIn x t2 ∧ freeIn y t1)
 boundIn-subst {x} {t2} {y} {var z} u with keep (z ≃ y) 
-boundIn-subst {x} {t2} {y} {var z} u | tt , p rewrite p | ≃-symm p = inj₂ (u , refl)
+boundIn-subst {x} {t2} {y} {var z} u | tt , p rewrite p | ≃-sym p = inj₂ (u , refl)
 boundIn-subst {x} {t2} {y} {var z} u | ff , p rewrite p = inj₁ u
 boundIn-subst {x} {t2} {y} {t1a · t1b} (inj₁ u) with boundIn-subst{x}{t2}{y}{t1a} u
 boundIn-subst {x} {t2} {y} {t1a · t1b} (inj₁ u) | inj₁ v = inj₁ (inj₁ v)
@@ -152,7 +161,7 @@ boundIn-subst {x} {t2} {y} {ƛ z t1} (inj₂ u) | ff | inj₂ (v1 , v2) = inj₂
                 ¬ freeIn x t1 →
                 [ t2 / x ] t1 ≡ t1
 ¬freeIn-subst{x}{var y}{t2} nf with keep (y ≃ x) 
-¬freeIn-subst{x}{var y}{t2} nf | tt , q rewrite q | ≃-symm q with nf refl
+¬freeIn-subst{x}{var y}{t2} nf | tt , q rewrite q | ≃-sym q with nf refl
 ¬freeIn-subst{x}{var y}{t2} nf | tt , q | ()
 ¬freeIn-subst{x}{var y}{t2} nf | ff , q rewrite q = refl
 ¬freeIn-subst{x}{t1a · t1b}{t2} nf with ¬freeIn-app{x}{t1a}{t1b} nf
@@ -242,7 +251,7 @@ freeIn-subst-same : ∀{t2 : Tm}{x : V}{t1 : Tm} →
                      freeIn x t2
 freeIn-subst-same {t2} {x} {var y} u with keep (y ≃ x)
 freeIn-subst-same {t2} {x} {var y} u | tt , p rewrite p = u
-freeIn-subst-same {t2} {x} {var y} u | ff , p rewrite p rewrite ≃-symm u with p
+freeIn-subst-same {t2} {x} {var y} u | ff , p rewrite p rewrite ≃-sym u with p
 freeIn-subst-same {t2} {x} {var y} u | ff , p | ()
 freeIn-subst-same {t2} {x} {t1 · t3} (inj₁ u) = freeIn-subst-same{t2}{x}{t1} u
 freeIn-subst-same {t2} {x} {t1 · t3} (inj₂ u) = freeIn-subst-same{t2}{x}{t3} u
@@ -313,7 +322,7 @@ subst-diff-commute : ∀{t : Tm}{x y : V}{t1 t2 : Tm} →
                       [ t2 / y ]ok t →                       
                       [ t1 / x ] ([ t2 / y ] t) ≡ [ [ t1 / x ] t2 / y ] ([ t1 / x ] t)
 subst-diff-commute {var z}{x}{y} u _ _ _ with keep (z ≃ y) | keep (z ≃ x)
-subst-diff-commute {var z}{x}{y} u _ _ _ | tt , p | tt , q rewrite p | q | ≃-≡ p | ≃-symm q with u
+subst-diff-commute {var z}{x}{y} u _ _ _ | tt , p | tt , q rewrite p | q | ≃-≡ p | ≃-sym q with u
 subst-diff-commute {var z}{x}{y} u _ _ _ | tt , p | tt , q | ()
 subst-diff-commute {var z}{x}{y} u _ _ _ | tt , p | ff , q rewrite p | q with keep (z ≃ y)
 subst-diff-commute {var z}{x}{y} u _ _ _ | tt , p | ff , q | tt , r rewrite p = refl
@@ -402,3 +411,57 @@ rename-nothing {(y , y') :: r} {x} u with keep (x ≃ y)
 rename-nothing {(y , y') :: r} {x} u | tt , p rewrite p with u
 rename-nothing {(y , y') :: r} {x} u | tt , p | ()
 rename-nothing {(y , y') :: r} {x} u | ff , p rewrite p | u = refl
+
+rename-var-lem : ∀{v : V}{r : Renaming} →
+                 rename r (var v) ≡ var (rename-var r v)
+rename-var-lem {v} {[]} = refl
+rename-var-lem {v} {(x , x') :: r} with v ≃ x
+rename-var-lem {v} {(x , x') :: r} | tt = refl
+rename-var-lem {v} {(x , x') :: r} | ff = rename-var-lem{v}{r}
+
+renaming-to-subst-drop : ∀{r : Renaming}{x : V} →
+                         renaming-to-subst (subst-drop x r) ≡ subst-drop x (renaming-to-subst r)
+renaming-to-subst-drop {[]} {x} = refl
+renaming-to-subst-drop {(y , y') :: r} {x} with y ≃ x
+renaming-to-subst-drop {(y , y') :: r} {x} | tt = renaming-to-subst-drop{r}{x}
+renaming-to-subst-drop {(y , y') :: r} {x} | ff rewrite renaming-to-subst-drop{r}{x} = refl
+
+rename-subst-drop1 : ∀{x : V}{r : Renaming} →
+                      rename-var (subst-drop x r) x ≡ x
+rename-subst-drop1{x}{[]} = refl
+rename-subst-drop1{x}{(y , y') :: r} with keep (y ≃ x) 
+rename-subst-drop1{x}{(y , y') :: r} | tt , p rewrite p = rename-subst-drop1{x}{r}
+rename-subst-drop1{x}{(y , y') :: r} | ff , p rewrite p | ~≃-sym p = rename-subst-drop1{x}{r}
+
+rename-subst-drop2 : ∀{x y : V}{r : Renaming} →
+                      x ≃ y ≡ ff → 
+                      rename-var (subst-drop x r) y ≡ rename-var r y
+rename-subst-drop2{x}{y}{[]} u = refl
+rename-subst-drop2{x}{y}{(z , z') :: r} u with keep (z ≃ x) 
+rename-subst-drop2{x}{y}{(z , z') :: r} u | tt , p rewrite p | rename-subst-drop2{x}{y}{r} u | ≃-≡ p | ~≃-sym u = refl
+rename-subst-drop2{x}{y}{(z , z') :: r} u | ff , p rewrite p with keep (y ≃ z)
+rename-subst-drop2{x}{y}{(z , z') :: r} u | ff , p | tt , q rewrite q = refl
+rename-subst-drop2{x}{y}{(z , z') :: r} u | ff , p | ff , q rewrite q = rename-subst-drop2{x}{y}{r} u
+
+rename-subst-drop : ∀{x y : V}{r : Renaming} →
+                     rename-var r x ≡ x →
+                     rename-var r y ≡ rename-var (subst-drop x r) y
+rename-subst-drop{x}{y}{r} u with keep (x ≃ y)
+rename-subst-drop{x}{y}{r} u | tt , p rewrite ≃-≡ p | rename-subst-drop1{y}{r} = u
+rename-subst-drop{x}{y}{r} u | ff , p rewrite rename-subst-drop2{x}{y}{r} p = refl 
+
+rename-subst-drop+ : ∀{x y : V}{r1 r2 : Renaming} →
+                     rename-var r2 x ≡ x →
+                     rename-var (r1 ++ r2) y ≡ rename-var (r1 ++ subst-drop x r2) y
+rename-subst-drop+ {x} {y} {[]} {r2} u = rename-subst-drop{x}{y}{r2} u
+rename-subst-drop+ {x} {y} {(z , z') :: r1} {r2} u with y ≃ z
+rename-subst-drop+ {x} {y} {(z , z') :: r1} {r2} u | tt = refl
+rename-subst-drop+ {x} {y} {(z , z') :: r1} {r2} u | ff = rename-subst-drop+{x}{y}{r1}{r2} u
+
+{-
+rename-var-nest : ∀{x y z : V}{r : Renaming} →
+                   rename-var ((x , y) :: r) z ≡ rename-var [ x , y ] (rename-var (subst-drop x r) z)
+rename-var-nest{x}{y}{z}{r} with keep (x ≃ z)
+rename-var-nest{x}{y}{z}{r} | tt , p rewrite ≃-≡ p | rename-subst-drop1{z}{r} | ≃-refl{z} = refl
+rename-var-nest{x}{y}{z}{r} | ff , p rewrite rename-subst-drop2{x}{z}{r} p = {!!}
+-}

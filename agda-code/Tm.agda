@@ -60,3 +60,9 @@ fv : Tm → 𝕃 V
 fv (var x) = [ x ]
 fv (t1 · t2) = fv t1 ++ fv t2
 fv (ƛ x t) = remove _≃_ x (fv t)
+
+-- return the list of all vars, free and bound, in the term
+vars : Tm → 𝕃 V
+vars (var x) = [ x ]
+vars (t1 · t2) = vars t1 ++ vars t2
+vars (ƛ x t) = x :: vars t
