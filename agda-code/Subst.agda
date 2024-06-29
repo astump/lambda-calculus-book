@@ -74,6 +74,9 @@ renaming-to-subst = map (snd-map var)
 rename : Renaming → Tm → Tm
 rename r = subst (renaming-to-subst r)
 
+renameOk : Renaming → Tm → Set
+renameOk r t = substOk (renaming-to-subst r) t
+
 toSubst : Subst1 → Subst
 toSubst s = [ s ]
 
@@ -92,8 +95,8 @@ toSubst1 x t = (x , t)
 [_/_]ok_ : Tm → V → Tm → Set
 [ t2 / x ]ok t1 = subst1ok (toSubst1 x t2) t1
 
-renameOk : V → V → Tm → Set
-renameOk x y t = subst1ok (toSubst1 x (var y)) t
+rename1Ok : V → V → Tm → Set
+rename1Ok x y t = subst1ok (toSubst1 x (var y)) t
 
 ----------------------------------------------------------------------
 -- Theorems about substitution
@@ -465,3 +468,25 @@ rename-var-nest{x}{y}{z}{r} with keep (x ≃ z)
 rename-var-nest{x}{y}{z}{r} | tt , p rewrite ≃-≡ p | rename-subst-drop1{z}{r} | ≃-refl{z} = refl
 rename-var-nest{x}{y}{z}{r} | ff , p rewrite rename-subst-drop2{x}{z}{r} p = {!!}
 -}
+
+subst1ok-app1 : ∀{s : Subst1}{t1 t2 : Tm} →
+                subst1ok s (t1 · t2) →
+                subst1ok s t1
+subst1ok-app1 {x , t} {t1} {t2} sok = fst sok
+
+subst1ok-app2 : ∀{s : Subst1}{t1 t2 : Tm} →
+                subst1ok s (t1 · t2) →
+                subst1ok s t2
+subst1ok-app2 {x , t} {t1} {t2} sok = snd sok
+
+substOk-app1 : ∀{s : Subst}{t1 t2 : Tm} →
+               substOk s (t1 · t2) →
+               substOk s t1
+substOk-app1 {[]} {t1} {t2} sok = triv
+substOk-app1 {x :: s} {t1} {t2} (sok , sok') = subst1ok-app1 sok , substOk-app1{s}{t1}{t2} sok'
+
+substOk-app2 : ∀{s : Subst}{t1 t2 : Tm} →
+               substOk s (t1 · t2) →
+               substOk s t2
+substOk-app2 {[]} {t1} {t2} sok = triv
+substOk-app2 {x :: s} {t1} {t2} (sok , sok') = subst1ok-app2 sok , substOk-app2{s}{t1}{t2} sok'  
