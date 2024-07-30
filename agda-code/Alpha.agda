@@ -18,7 +18,6 @@ open import Tau vi
 α (ƛ x t1) (ƛ y t2) =
    rename1Ok x y t1 ∧
    ¬ freeIn y t1 ∧
-   x ≃ y ≡ ff ∧         -- don't allow trivial renamings
    t2 ≡ < x ↦ y > t1
 α _ _ = ⊥
 

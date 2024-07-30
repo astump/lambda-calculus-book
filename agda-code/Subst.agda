@@ -489,4 +489,15 @@ substOk-app2 : ∀{s : Subst}{t1 t2 : Tm} →
                substOk s (t1 · t2) →
                substOk s t2
 substOk-app2 {[]} {t1} {t2} sok = triv
-substOk-app2 {x :: s} {t1} {t2} (sok , sok') = subst1ok-app2 sok , substOk-app2{s}{t1}{t2} sok'  
+substOk-app2 {x :: s} {t1} {t2} (sok , sok') = subst1ok-app2 sok , substOk-app2{s}{t1}{t2} sok'
+
+substOk-lam : ∀{s : Subst}{x : V}{t : Tm} →
+               substOk s (ƛ x t) →
+               all-pred (λ p → fst p ≃ x ≡ ff → freeIn (fst p) t → ¬ freeIn x (snd p)) s
+substOk-lam {[]} {x} {t} sok = triv
+substOk-lam {(y , t') :: s} {x} {t} (inj₁ eq , sok2) = h , substOk-lam sok2
+  where h : (y ≃ x) ≡ ff → freeIn y t → ¬ freeIn x t'
+        h u _ rewrite eq with u 
+        h u _ | ()
+substOk-lam {(y , t') :: s} {x} {t} (inj₂ (inj₁ nf) , sok2) = (λ _ f _ → nf f) , substOk-lam sok2 
+substOk-lam {(y , t') :: s} {x} {t} (inj₂ (inj₂ (nf , sok)) , sok2) = (λ _ _ → nf) , substOk-lam sok2

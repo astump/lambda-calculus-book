@@ -27,6 +27,12 @@ record VI : Set₁ where
   _#_ : 𝕃 V → 𝕃 V → 𝔹
   xs # ys = disjoint _≃_ xs ys
 
+  ¬≃ : ∀{x y : V} → ¬ (x ≃ y ≡ tt) → x ≃ y ≡ ff 
+  ¬≃{x}{y} p with x ≃ y 
+  ¬≃{x}{y} p | tt with (p refl)
+  ¬≃{x}{y} p | tt | ()
+  ¬≃{x}{y} p | ff = refl
+
 ----------------------------------------------------------------------
 -- an implementation of the above interface based on V = ℕ
 
