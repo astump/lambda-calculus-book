@@ -39,9 +39,11 @@ lookup : ∀{X : Set} → 𝕃 (V × X) → V → maybe X
 lookup s y = maybe-map snd (find (λ p → y ≃ (fst p)) s)
 
 rename-var : Renaming → V → V
-rename-var r v with lookup r v
-rename-var r v | nothing = v
-rename-var r v | just v' = v'
+rename-var [] v = v
+rename-var ((x , y) :: r) v with v ≃ x
+rename-var ((x , y) :: r) v | tt = y
+rename-var ((x , y) :: r) v | ff = rename-var r v
+
 
 renaming-dom : Renaming → 𝕃 V
 renaming-dom = map fst
@@ -406,6 +408,10 @@ subst1ok-subst {x} {y} {t2} {t1b} {ƛ z t1a} (inj₂ (inj₂ (nf' , ok))) (inj�
         h f | inj₁ f1 = nf' f1
         h f | inj₂ (f1 , f2) = nf'' f1
 
+rename-var-immediate : ∀{r : Renaming}{x y : V} →
+                        rename-var ((x , y) :: r) x ≡ y
+rename-var-immediate{r}{x}{y} rewrite ≃-refl{x} = refl
+
 rename-nothing : ∀{r : Renaming}{x : V} →
                  lookup r x ≡ nothing →
                  rename-var r x ≡ x
@@ -413,7 +419,7 @@ rename-nothing {[]} {x} u = refl
 rename-nothing {(y , y') :: r} {x} u with keep (x ≃ y)
 rename-nothing {(y , y') :: r} {x} u | tt , p rewrite p with u
 rename-nothing {(y , y') :: r} {x} u | tt , p | ()
-rename-nothing {(y , y') :: r} {x} u | ff , p rewrite p | u = refl
+rename-nothing {(y , y') :: r} {x} u | ff , p rewrite p | u = rename-nothing{r} u 
 
 rename-var-lem : ∀{v : V}{r : Renaming} →
                  rename r (var v) ≡ var (rename-var r v)

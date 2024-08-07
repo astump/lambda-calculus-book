@@ -33,6 +33,10 @@ record VI : Set₁ where
   ¬≃{x}{y} p | tt | ()
   ¬≃{x}{y} p | ff = refl
 
+
+  ≃-⊥ : ∀{x : V} → (x ≃ x) ≡ ff → ∀{X : Set} → X
+  ≃-⊥{x} u rewrite ≃-refl{x} with u
+  ≃-⊥{x} u | ()
 ----------------------------------------------------------------------
 -- an implementation of the above interface based on V = ℕ
 

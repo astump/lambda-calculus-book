@@ -108,81 +108,77 @@ boundIn-αcanon'{avoid}{r}{t}{x} m b | q rewrite q with m
 boundIn-αcanon'{avoid}{r}{t}{x} m b | q | ()
 
 freeIn-αcanon : ∀{avoid : 𝕃 V}{r : Renaming}{t : Tm}{x : V} →
-                  (∀ x → freeIn x t → list-member _≃_ (rename-var r x) avoid ≡ tt) →
+                  (∀ {x} → freeIn x t → list-member _≃_ (rename-var r x) avoid ≡ tt) →
                   isSublist (renaming-ran r) avoid _≃_ ≡ tt →
                   freeIn x (αcanonh t avoid r) →
                   list-member _≃_ x avoid ≡ tt
-freeIn-αcanon{avoid}{r}{var y}{x} fa sr fi with keep (lookup r y)
-freeIn-αcanon{avoid}{r}{var y}{x} fa sr fi | nothing , p rewrite p with fa x fi
-freeIn-αcanon{avoid}{r}{var y}{x} fa sr fi | nothing , p | q rewrite ≃-≡ fi | rename-nothing{r}{y} p = q
-freeIn-αcanon{avoid}{r}{var y}{x} fa sr fi | just z , p rewrite p rewrite ≃-≡ fi = h{r}{y}{z} p sr
-  where
-    h : ∀{r : Renaming}{y z : V} →
-        lookup r y ≡ just z →
-        isSublist (renaming-ran r) avoid _≃_ ≡ tt →
-        list-member _≃_ z avoid ≡ tt
-    h {(x , x') :: r} {y} {z} l s with y ≃ x 
-    h {(x , x') :: r} {y} {z} refl s | tt = &&-elim1 s
-    h {(x , x') :: r} {y} {z} l s | ff = h{r}{y}{z} l (&&-elim2 s)
-freeIn-αcanon{avoid}{r}{t1 · t2}{x} fa sr (inj₁ fi) = freeIn-αcanon{avoid}{r}{t1}{x} (λ q f → fa q (inj₁ f)) sr fi
-freeIn-αcanon{avoid}{r}{t1 · t2}{x} fa sr (inj₂ fi) = freeIn-αcanon{avoid}{r}{t2}{x} (λ q f → fa q (inj₂ f)) sr fi
+freeIn-αcanon{avoid}{[]}{var y}{x} fa sr fi = fa fi
+freeIn-αcanon{avoid}{(z , z') :: r}{var y}{x} fa sr fi with keep (y ≃ z)
+freeIn-αcanon{avoid}{(z , z') :: r}{var y}{x} fa sr fi | tt , p rewrite p | ≃-≡ fi = &&-elim1{list-member _≃_ z' avoid} sr
+freeIn-αcanon{avoid}{(z , z') :: r}{var y}{x} fa sr fi | ff , p rewrite p =
+  freeIn-αcanon{avoid}{r}{var y}{x} h (&&-elim2{list-member _≃_ z' avoid} sr) fi
+  where h : ∀{x' : V} → x' ≃ y ≡ tt → list-member _≃_ (rename-var r x') avoid ≡ tt
+        h{x'} eq rewrite sym (≃-≡ eq) with fa{x'} (≃-refl{x'})
+        h{x'} eq | q rewrite p = q
+freeIn-αcanon{avoid}{r}{t1 · t2}{x} fa sr (inj₁ fi) = freeIn-αcanon{avoid}{r}{t1}{x} (λ {q} f → fa {q} (inj₁ f)) sr fi
+freeIn-αcanon{avoid}{r}{t1 · t2}{x} fa sr (inj₂ fi) = freeIn-αcanon{avoid}{r}{t2}{x} (λ {q} f → fa {q} (inj₂ f)) sr fi
 freeIn-αcanon{avoid}{r}{ƛ y t}{x} fa sr (fi , fi') with
   freeIn-αcanon{fresh avoid :: avoid}{(y , fresh avoid) :: r}{t}{x} h
     (isSublist-++-cong {V} {_≃_} {[ fresh avoid ]} {renaming-ran r}
                        {avoid} ≃-refl sr) fi'
   where
-   h : (z : V) →
+   h : {z : V} →
        freeIn z t →
        (rename-var ((y , fresh avoid) :: r) z ≃ fresh avoid) ||
        list-member _≃_ (rename-var ((y , fresh avoid) :: r) z) avoid ≡ tt
-   h z fz with keep (z ≃ y)
-   h z fz | tt , p rewrite p = ||-intro1 ≃-refl
-   h z fz | ff , p rewrite p = ||-intro2 (fa z (p , fz))
+   h {z} fz with keep (z ≃ y)
+   h {z} fz | tt , p rewrite p = ||-intro1 ≃-refl
+   h {z} fz | ff , p rewrite p = ||-intro2 (fa {z} (p , fz))
 freeIn-αcanon{avoid}{r}{ƛ y t}{x} fa sr (fi , fi') | p rewrite fi = p
 
 
 
 mpcOk-αcanon : ∀{avoid : 𝕃 V}{r : Renaming}{t : Tm} → 
-                  (∀ x → freeIn x t → list-member _≃_ (rename-var r x) avoid ≡ tt) →
+                  (∀ {x} → freeIn x t → list-member _≃_ (rename-var r x) avoid ≡ tt) →
                   isSublist (renaming-ran r) avoid _≃_ ≡ tt →
                   mpcOk (αcanonh t avoid r)
 mpcOk-αcanon{avoid}{r}{var x} fa sr = triv
-mpcOk-αcanon{avoid}{r}{(var x) · t} fa sr = mpcOk-αcanon{avoid}{r}{t} (λ y f → fa y (inj₂ f)) sr
+mpcOk-αcanon{avoid}{r}{(var x) · t} fa sr = mpcOk-αcanon{avoid}{r}{t} (λ {y} f → fa {y} (inj₂ f)) sr
 mpcOk-αcanon{avoid}{r}{t1 · t2 · t3} fa sr =
-  mpcOk-αcanon{avoid}{r}{t1 · t2} (λ y f → fa y (inj₁ f)) sr ,
-  mpcOk-αcanon{avoid}{r}{t3} ((λ y f → fa y (inj₂ f))) sr   
+  mpcOk-αcanon{avoid}{r}{t1 · t2} (λ {y} f → fa {y} (inj₁ f)) sr ,
+  mpcOk-αcanon{avoid}{r}{t3} ((λ {y} f → fa {y} (inj₂ f))) sr   
 mpcOk-αcanon{avoid}{r}{(ƛ y t1) · t2} fa sr =
   h' ,
   mpcOk-αcanon{fresh avoid :: avoid}{(y , fresh avoid) :: r}{t1} h
     (isSublist-++-cong {V} {_≃_} {[ fresh avoid ]} {renaming-ran r}
                        {avoid} ≃-refl sr) ,
-  mpcOk-αcanon{avoid}{r}{t2} (λ z f → fa z (inj₂ f)) sr
+  mpcOk-αcanon{avoid}{r}{t2} (λ {z} f → fa {z} (inj₂ f)) sr
   where
-   h : (z : V) →
+   h : {z : V} →
        freeIn z t1 →
        (rename-var ((y , fresh avoid) :: r) z ≃ fresh avoid) ||
        list-member _≃_ (rename-var ((y , fresh avoid) :: r) z) avoid ≡ tt
-   h z fz with keep (z ≃ y)
-   h z fz | tt , p rewrite p = ||-intro1 ≃-refl
-   h z fz | ff , p rewrite p = ||-intro2 (fa z (inj₁ (p , fz)))
+   h {z} fz with keep (z ≃ y)
+   h {z} fz | tt , p rewrite p = ||-intro1 ≃-refl
+   h {z} fz | ff , p rewrite p = ||-intro2 (fa {z} (inj₁ (p , fz)))
 
    h' : bv-apart (αcanonh t2 avoid r)
          (αcanonh t1 (fresh avoid :: avoid) ((y , fresh avoid) :: r))
    h' x f = boundIn-αcanon'{fresh avoid :: avoid}{(y , fresh avoid) :: r}{t1}{x}
-              (||-intro2{x ≃ fresh avoid} (freeIn-αcanon{avoid}{r}{t2}{x} (λ z f → fa z (inj₂ f)) sr f))
+              (||-intro2{x ≃ fresh avoid} (freeIn-αcanon{avoid}{r}{t2}{x} (λ {z} f → fa {z} (inj₂ f)) sr f))
 
 mpcOk-αcanon{avoid}{r}{ƛ y t} fa sr =
   mpcOk-αcanon{fresh avoid :: avoid}{(y , fresh avoid) :: r}{t} h
     (isSublist-++-cong {V} {_≃_} {[ fresh avoid ]} {renaming-ran r}
                        {avoid} ≃-refl sr)
   where
-   h : (z : V) →
+   h : {z : V} →
        freeIn z t →
        (rename-var ((y , fresh avoid) :: r) z ≃ fresh avoid) ||
        list-member _≃_ (rename-var ((y , fresh avoid) :: r) z) avoid ≡ tt
-   h z fz with keep (z ≃ y)
-   h z fz | tt , p rewrite p = ||-intro1 ≃-refl
-   h z fz | ff , p rewrite p = ||-intro2 (fa z (p , fz))
+   h {z} fz with keep (z ≃ y)
+   h {z} fz | tt , p rewrite p = ||-intro1 ≃-refl
+   h {z} fz | ff , p rewrite p = ||-intro2 (fa {z} (p , fz))
 
 
 αcanon-triv-renaming : ∀{x : V}{r1 r2 : Renaming}{avoid : 𝕃 V}{t : Tm} →
@@ -194,66 +190,77 @@ mpcOk-αcanon{avoid}{r}{ƛ y t} fa sr =
 αcanon-triv-renaming{x}{r1}{r2}{avoid}{ƛ y t} u
   rewrite αcanon-triv-renaming{x}{(y , fresh avoid) :: r1}{r2}{fresh avoid :: avoid}{t} u = refl
 
--- plan: use the conclusion of substOk-lam (Subst.agda) as the premise of the lemma, instead of the current one with list-member
-
 αcanon-rename : ∀{t : Tm}{x y : V}{r : Renaming}{avoid : 𝕃 V} → 
-                let r' = subst-drop x r in
-                 all-pred (λ p → fst p ≃ x ≡ ff → freeIn (fst p) t → x ≃ snd p ≡ ff) r' → 
-                 αcanonh t (y :: avoid) ((x , y) :: r)
-               ≡ (< x ↦ y > αcanonh t (y :: avoid) r')
-αcanon-rename{var z}{x}{y}{r}{avoid} u rewrite rename-var-lem{rename-var (subst-drop x r) z}{[ x , y ]} = cong var h 
+                 all-pred (λ p → fst p ≃ x ≡ ff → freeIn (fst p) t → x ≃ snd p ≡ ff) r →
+                 rename-var r x ≡ y → 
+                 αcanonh t (y :: avoid) r
+              ≡ < x ↦ y > αcanonh t (y :: avoid) (subst-drop x r)
+αcanon-rename{var z}{x}{y}{r}{avoid} u rxy rewrite rename-var-lem{rename-var (subst-drop x r) z}{[ x , y ]} = cong var h 
   where
-    h : rename-var ((x , y) :: r) z ≡ rename-var [ x , y ] (rename-var (subst-drop x r) z)
-    h with keep (z ≃ x) 
-    h | tt , p rewrite p | ≃-≡ p | rename-subst-drop1{x}{r} | ≃-refl{x} = refl
-    h | ff , p rewrite p | rename-subst-drop2{x}{z}{r} (~≃-sym p) = {!!}
-{-
-h'{r} {!!}
-      where
-        h' : ∀{r : Renaming} →
-             list-member _≃_ x (renaming-ran r) ≡ ff →
-             rename-var r z ≡ rename-var [ x , y ] (rename-var r z)
-        h' {[]} nr rewrite p = refl
-        h' {(w , w') :: r} nr with keep (z ≃ w) 
-        h' {(w , w') :: r} nr | tt , q rewrite q | ~≃-sym (fst (||-≡-ff{x ≃ w'} nr)) = refl
-        h' {(w , w') :: r} nr | ff , q rewrite q = h'{r} (snd (||-≡-ff{x ≃ w'} nr)) 
--}
-αcanon-rename{t1 · t2}{x}{y}{r}{avoid} u = {!!}
---  rewrite αcanon-rename{t1}{x}{y}{r}{avoid} u | αcanon-rename{t2}{x}{y}{r}{avoid} u = refl
+    h' : ∀{r r' : Renaming} →
+           z ≃ x ≡ ff → 
+           subst-drop x r ≡ r' →
+           all-pred (λ p₁ → (fst p₁ ≃ x) ≡ ff → (fst p₁ ≃ z) ≡ tt → (x ≃ snd p₁) ≡ ff) r →
+           rename-var r' z ≃ x ≡ ff
+    h' {[]} zx eq u rewrite sym eq = zx
+    h' {(a , b) :: r} zx eq u with a ≃ x 
+    h' {(a , b) :: r} zx eq (_ , u) | tt = h' {r} zx eq u
+    h' {(a , b) :: r} zx eq u | ff rewrite sym eq with keep (z ≃ a) 
+    h' {(a , b) :: r} zx eq (u , u') | ff | tt , p rewrite p | ≃-≡ p = ~≃-sym (u refl ≃-refl)
+    h' {(a , b) :: r} zx eq (u , u') | ff | ff , p rewrite p = h' {r}{filter (λ p₁ → ~ (fst p₁ ≃ x)) r} zx refl u'    
 
-αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u with fst (||-≡-ff{fresh (y :: avoid) ≃ y} (fresh-distinct{y :: avoid}))
-αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u | dis rewrite ~≃-sym dis with keep (x ≃ fresh (y :: avoid))
-αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u | dis | tt , p
+    h : rename-var r z ≡ rename-var [ x , y ] (rename-var (subst-drop x r) z)
+    h with keep (z ≃ x) 
+    h | tt , p rewrite p | ≃-≡ p | rename-subst-drop1{x}{r} | ≃-refl{x} = rxy
+    h | ff , p rewrite p with keep (subst-drop x r) 
+    h | ff , p | r' , eq rewrite eq | h'{r} p eq u | sym eq | rename-subst-drop2{x}{z}{r} (~≃-sym p) = refl 
+    
+αcanon-rename{t1 · t2}{x}{y}{r}{avoid} u rxy
+ rewrite αcanon-rename{t1}{x}{y}{r}{avoid} (all-pred-implies (λ u nx fi → u nx (inj₁ fi)) u) rxy
+       | αcanon-rename{t2}{x}{y}{r}{avoid} (all-pred-implies (λ u nx fi → u nx (inj₂ fi)) u) rxy = refl
+
+
+αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u rxy with fst (||-≡-ff{fresh (y :: avoid) ≃ y} (fresh-distinct{y :: avoid}))
+αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u rxy | dis rewrite ~≃-sym dis with keep (x ≃ fresh (y :: avoid))
+αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u rxy | dis | tt , p
   rewrite p | subst[] (αcanonh t (fresh (y :: avoid) :: y :: avoid)
                        ((z , fresh (y :: avoid)) :: subst-drop x r)) = {!!}
-αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u | dis | ff , p rewrite p = {!!}
+αcanon-rename{ƛ z t}{x}{y}{r}{avoid} u rxy | dis | ff , p rewrite p = {!!}
 
 αcanon-completion : ∀{t1 t2 : Tm}{avoid : 𝕃 V}{r : Renaming} → 
 --                    (∀ x → freeIn x t1 → list-member _≃_ (rename-var r x) avoid ≡ tt) →
-                    renameOk r t2 → 
+                    renameOk r t1 →  
                     t1 ⟨ ⇛ ⟩ t2 →
                     rename r t2 ⟨ ⇛ ⟩ αcanonh t1 avoid r
 αcanon-completion {r = r} rok (⇛var{v}) rewrite rename-var-lem{v}{r} = ⇛var
-αcanon-completion rok (⇛app d1 d2) = ⇛app (αcanon-completion {!!} d1) (αcanon-completion {!!} d2)
+αcanon-completion r (⇛app d1 d2) = ⇛app (αcanon-completion (substOk-app1 r) d1) (αcanon-completion {!substOk-app2 r!} d2)
 αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} rok (⇛lam{x} d) with αcanon-completion{t}{t'}{fresh avoid :: avoid}{subst-drop x r} {!!} d
-αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} rok (⇛lam{x} d) | p rewrite renaming-to-subst-drop{r}{x} =
-  ⇛alpha{x} p ({!!} , {!!} , αcanon-rename {!!})
-{-
-αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} rok (⇛lam{x} d) with αcanon-completion{t}{t'}{x :: avoid}{subst-drop x r} {!!} d 
-αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} rok (⇛lam{x} d) | p rewrite renaming-to-subst-drop{r}{x} with keep (x ≃ fresh avoid)  
-αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r}rok (⇛lam{x} d) | p | tt , q rewrite sym (≃-≡ q) with
-   sym (αcanon-triv-renaming{x}{[]}{(x , x) :: r}{x :: avoid}{t} h)
-   where
-    h : rename-var ((x , x) :: r) x ≡ x
-    h rewrite ≃-refl{x} = refl
-αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r}rok (⇛lam{x} d) | p | tt , q | rn
-  rewrite ≃-refl{x} | rn | sym (renaming-to-subst-drop{r}{x}) = 
-  {!!} {- ⇛lam{x}{subst (renaming-to-subst (subst-drop x r)) t'}{αcanonh t (x :: avoid) ((x , x) :: r)} p -}
-αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r}rok (⇛lam{x} d) | p | ff , q = 
-  ⇛alpha{x}{subst (subst-drop x (renaming-to-subst r)) t'}
-        {c = ƛ (fresh avoid) (αcanonh t (fresh avoid :: avoid) ((x , fresh avoid) :: r))}
-    p ({!!} , {!!} , q , {!!})     
--}
+αcanon-completion{ƛ x t}{ƛ x t'}{avoid}{r} rok (⇛lam{x} d) | p rewrite renaming-to-subst-drop{r}{x} = 
+  ⇛alpha{x} p ({!!} , {!!} , q)
+
+--  
+
+ where h : ∀{r : Renaming} →
+           all-pred
+            (λ p₁ → (fst p₁ ≃ x) ≡ ff → freeIn (fst p₁) t → ¬ freeIn x (snd p₁))
+            (map (snd-map var) r) → 
+           all-pred
+             (λ p₁ → (fst p₁ ≃ x) ≡ ff → freeIn (fst p₁) t → (x ≃ snd p₁) ≡ ff)
+             r
+       h {[]} u = triv
+       h {(a , b) :: r} (u , u') with x ≃ b 
+       h {(a , b) :: r} (u , u') | tt = (λ i j → ⊥-elim (u i j refl)) , h{r} u'
+       h {(a , b) :: r} (u , u') | ff = (λ i j → refl) , h{r} u'
+
+       q : αcanonh t (fresh avoid :: avoid) ((x , fresh avoid) :: r) ≡
+           (< x ↦ fresh avoid >
+             αcanonh t (fresh avoid :: avoid)
+             (filter (λ p₁ → ~ (fst p₁ ≃ x)) r))
+       q with αcanon-rename{t}{x}{fresh avoid}{(x , fresh avoid) :: r}{avoid}
+          ((λ u → ≃-⊥ u) , h (substOk-lam rok)) (rename-var-immediate{r}{x})
+       q | z rewrite ≃-refl{x} = z
+
+
 αcanon-completion{avoid = avoid}{r} rok (⇛alpha{x}{t2}{t2'}{ƛ y t2''} d (rok' , nf , refl)) = {!!}
   --⇛alpha {y} {t2''} {αcanonh t2'' (fresh avoid :: avoid) ((y , fresh avoid) :: r)} {!!} ({!!} , {!!} , {!!} , {!!} )
 
