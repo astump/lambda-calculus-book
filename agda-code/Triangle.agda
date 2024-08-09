@@ -190,6 +190,10 @@ mpcOk-αcanon{avoid}{r}{ƛ y t} fa sr =
 αcanon-triv-renaming{x}{r1}{r2}{avoid}{ƛ y t} u
   rewrite αcanon-triv-renaming{x}{(y , fresh avoid) :: r1}{r2}{fresh avoid :: avoid}{t} u = refl
 
+-- idea: might need to define ordering on variables so that we can say fresh (y :: avoid) is bigger than x.
+-- Then all variables introduced by αcanonh will also be bigger than x, so we would not capture any
+-- occurrence of x when we do αcanonh t (y :: avoid) (subst-drop x r).  
+
 αcanon-rename : ∀{t : Tm}{x y : V}{r : Renaming}{avoid : 𝕃 V} → 
                  all-pred (λ p → fst p ≃ x ≡ ff → freeIn (fst p) t → x ≃ snd p ≡ ff) r →
                  rename-var r x ≡ y → 
