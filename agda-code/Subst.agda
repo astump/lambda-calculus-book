@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import lib
 open import bool-relations
 open import VarInterface
@@ -467,6 +468,16 @@ rename-subst-drop+ {x} {y} {(z , z') :: r1} {r2} u with y ≃ z
 rename-subst-drop+ {x} {y} {(z , z') :: r1} {r2} u | tt = refl
 rename-subst-drop+ {x} {y} {(z , z') :: r1} {r2} u | ff = rename-subst-drop+{x}{y}{r1}{r2} u
 
+rename-var-++ : ∀{z z' : V}{r' r : Renaming} →
+                 z ≃ z' ≡ ff → 
+                 rename-var r' z ≡ z' →
+                 rename-var (r' ++ r) z ≡ z'
+rename-var-++ {z} {z'} {[]} {r} u v rewrite v | ≃-refl{z'} with u
+rename-var-++ {z} {z'} {[]} {r} u v | ()
+rename-var-++ {z} {z'} {(x , x') :: r'} {r} u v with z ≃ x 
+rename-var-++ {z} {z'} {(x , x') :: r'} {r} u v | tt = v
+rename-var-++ {z} {z'} {(x , x') :: r'} {r} u v | ff = rename-var-++{z}{z'}{r'}{r} u v
+
 {-
 rename-var-nest : ∀{x y z : V}{r : Renaming} →
                    rename-var ((x , y) :: r) z ≡ rename-var [ x , y ] (rename-var (subst-drop x r) z)
@@ -507,3 +518,36 @@ substOk-lam {(y , t') :: s} {x} {t} (inj₁ eq , sok2) = h , substOk-lam sok2
         h u _ | ()
 substOk-lam {(y , t') :: s} {x} {t} (inj₂ (inj₁ nf) , sok2) = (λ _ f _ → nf f) , substOk-lam sok2 
 substOk-lam {(y , t') :: s} {x} {t} (inj₂ (inj₂ (nf , sok)) , sok2) = (λ _ _ → nf) , substOk-lam sok2
+
+rename-var-member-ran :
+  ∀{z : V}{r : Renaming} →
+   rename-var r z ≃ z ≡ ff →
+   list-member _≃_ (rename-var r z) (renaming-ran r) ≡ tt
+rename-var-member-ran {z} {[]} dis rewrite ≃-refl{z} with dis
+rename-var-member-ran {z} {[]} dis | ()
+rename-var-member-ran {z} {(y , y') :: r} dis with keep (z ≃ y) 
+rename-var-member-ran {z} {(y , y') :: r} dis | tt , p rewrite p | ≃-refl{y'} = refl
+rename-var-member-ran {z} {(y , y') :: r} dis | ff , p rewrite p | rename-var-member-ran{z}{r} dis | ||-tt (rename-var r z ≃ y') = refl        
+
+rename-var-member-dom :
+  ∀{z : V}{r : Renaming} →
+   rename-var r z ≃ z ≡ ff →
+   list-member _≃_ z (renaming-dom r) ≡ tt
+rename-var-member-dom {z} {[]} u rewrite ≃-refl{z} with u
+rename-var-member-dom {z} {[]} u | ()
+rename-var-member-dom {z} {(x , x') :: r} u with z ≃ x
+rename-var-member-dom {z} {(x , x') :: r} u | tt = refl
+rename-var-member-dom {z} {(x , x') :: r} u | ff = rename-var-member-dom{z}{r} u
+
+-- should be able to prove this from some lemmas about filter and map with isSublist
+subst-drop-sublist : ∀{x : V}{s : Renaming} →
+                      isSublist (renaming-ran (subst-drop x s)) (renaming-ran s) _≃_ ≡ tt
+subst-drop-sublist {s = []} = refl
+subst-drop-sublist {x = x}{(y , y') :: s} with
+  list-all-sub{p = λ a → list-member _≃_ a (renaming-ran s)}
+              {λ a → a ≃ y' || list-member _≃_ a (renaming-ran s)}
+              (renaming-ran (subst-drop x s))
+              (λ a p → ||-intro2 p) (subst-drop-sublist{x = x}{s})
+  | y ≃ x
+subst-drop-sublist {x = x}{(y , y') :: s} | p | tt = p
+subst-drop-sublist {x = x}{(y , y') :: s} | p | ff rewrite ≃-refl{y'} = p

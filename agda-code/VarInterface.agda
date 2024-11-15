@@ -23,6 +23,7 @@ record VI : Set₁ where
   ≃-sym = snd ≃-equivalence
   ≃-trans = snd (fst ≃-equivalence)
   ~≃-sym = ~symmetric _≃_ ≃-sym
+  ~≃-sym2 = ~symmetric2 _≃_ ≃-sym
 
   _#_ : 𝕃 V → 𝕃 V → 𝔹
   xs # ys = disjoint _≃_ xs ys
